@@ -131,6 +131,7 @@ class Bundler extends EventEmitter {
           ? getRootDir(this.entryFiles)
           : options.rootDir,
       noFsReadWrite: options.noFsReadWrite,
+      rFileName: options.rFileName,
       sourceMaps:
         (typeof options.sourceMaps === 'boolean' ? options.sourceMaps : true) &&
         !scopeHoist,
@@ -246,7 +247,9 @@ class Bundler extends EventEmitter {
 
       // If this is the initial bundle, ensure the output directory exists, and resolve the main asset.
       if (isInitialBundle) {
-        await fs.mkdirp(this.options.outDir);
+        if (!this.options.noFsReadWrite) {
+          await fs.mkdirp(this.options.outDir);
+        }
 
         this.entryAssets = new Set();
         for (let entry of this.entryFiles) {
@@ -599,7 +602,7 @@ class Bundler extends EventEmitter {
 
     logger.verbose(`Built ${asset.relativeName}...`);
 
-    if (this.cache && cacheMiss) {
+    if (this.cache && cacheMiss && this.options.rFileName !== asset.name) {
       this.cache.write(asset.name, processed);
     }
   }
