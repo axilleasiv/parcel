@@ -73,8 +73,8 @@ const OPTIONS = {
 };
 
 class HTMLAsset extends Asset {
-  constructor(name, options) {
-    super(name, options);
+  constructor(name, options, contents) {
+    super(name, options, contents);
     this.type = 'html';
     this.isAstDirty = false;
   }
