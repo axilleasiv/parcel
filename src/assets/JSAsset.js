@@ -27,8 +27,8 @@ const SOURCEMAP_RE = /\/\/\s*[@#]\s*sourceMappingURL\s*=\s*([^\s]+)/;
 const DATA_URL_RE = /^data:[^;]+(?:;charset=[^;]+)?;base64,(.*)/;
 
 class JSAsset extends Asset {
-  constructor(name, options) {
-    super(name, options);
+  constructor(name, options, contents) {
+    super(name, options, contents);
     this.type = 'js';
     this.globals = new Map();
     this.isAstDirty = false;

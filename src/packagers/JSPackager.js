@@ -9,6 +9,18 @@ const prelude = getExisting(
   path.join(__dirname, '../builtins/prelude.min.js'),
   path.join(__dirname, '../builtins/prelude.js')
 );
+const template = require('../builtins/template.js');
+
+//TODO
+// const prelude = {
+//   source: fs
+//     .readFileSync(path.join(__dirname, '../builtins/prelude.js'), 'utf8')
+//     .trim(),
+//   minified: fs
+//     .readFileSync(path.join(__dirname, '../builtins/prelude.min.js'), 'utf8')
+//     .trim()
+//     .replace(/;$/, '')
+// };
 
 class JSPackager extends Packager {
   async start() {
@@ -17,17 +29,23 @@ class JSPackager extends Packager {
     this.bundleLoaders = new Set();
     this.externalModules = new Set();
 
-    let preludeCode = this.options.minify ? prelude.minified : prelude.source;
-    if (this.options.target === 'electron') {
-      preludeCode =
-        `process.env.HMR_PORT=${
-          this.options.hmrPort
-        };process.env.HMR_HOSTNAME=${JSON.stringify(
-          this.options.hmrHostname
-        )};` + preludeCode;
+    if (!this.options.noFsReadWrite) {
+      let preludeCode = this.options.minify ? prelude.minified : prelude.source;
+      if (this.options.target === 'electron') {
+        preludeCode =
+          `process.env.HMR_PORT=${
+            this.options.hmrPort
+          };process.env.HMR_HOSTNAME=${JSON.stringify(
+            this.options.hmrHostname
+          )};` + preludeCode;
+      }
+
+      await this.write(preludeCode + '({');
+      this.lineOffset = lineCounter(preludeCode);
+    } else {
+      this.modules = [];
+      this.lineOffset = lineCounter(template());
     }
-    await this.write(preludeCode + '({');
-    this.lineOffset = lineCounter(preludeCode);
   }
 
   async addAsset(asset) {
@@ -111,8 +129,11 @@ class JSPackager extends Packager {
     wrapped += ']';
 
     this.first = false;
-    await this.write(wrapped);
-
+    if (!this.options.noFsReadWrite) {
+      await this.write(wrapped);
+    } else {
+      this.modules.push(wrapped);
+    }
     // Use the pre-computed line count from the source map if possible
     let lineCount = map && map.lineCount ? map.lineCount : lineCounter(code);
     this.lineOffset += 1 + lineCount;
@@ -216,13 +237,20 @@ class JSPackager extends Packager {
       entry.push(this.bundle.entryAsset.id);
     }
 
-    await this.dest.write(
+    let endString =
       '},{},' +
-        JSON.stringify(entry) +
-        ', ' +
-        JSON.stringify(this.options.global || null) +
-        ')'
-    );
+      JSON.stringify(entry) +
+      ', ' +
+      JSON.stringify(this.options.global || null) +
+      ')';
+
+    if (this.options.noFsReadWrite) {
+      this.modules.push(endString);
+      this.bundler.mainBundle.sourceCodeFinal = template(this.modules.join(''));
+    } else {
+      await this.dest.write(endString);
+    }
+
     if (this.options.sourceMaps) {
       // Add source map url if a map bundle exists
       let mapBundle = this.bundle.siblingBundlesMap.get('map');
@@ -234,7 +262,10 @@ class JSPackager extends Packager {
         await this.write(`\n//# sourceMappingURL=${mapUrl}`);
       }
     }
-    await this.dest.end();
+
+    if (!this.options.noFsReadWrite) {
+      await this.dest.end();
+    }
   }
 }
 

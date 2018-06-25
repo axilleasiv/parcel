@@ -17,7 +17,7 @@ const objectHash = require('./utils/objectHash');
  * for subclasses to implement.
  */
 class Asset {
-  constructor(name, options) {
+  constructor(name, options, contents) {
     this.id = null;
     this.name = name;
     this.basename = path.basename(this.name);
@@ -30,7 +30,7 @@ class Asset {
     this.hmrPageReload = false;
 
     this.processed = false;
-    this.contents = options.rendition ? options.rendition.value : null;
+    this.contents = options.rendition ? options.rendition.value : contents;
     this.ast = null;
     this.generated = null;
     this.hash = null;
