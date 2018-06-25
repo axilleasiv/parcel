@@ -15,11 +15,11 @@ function init(options, isLocal = false) {
   }
 }
 
-async function run(path, isWarmUp) {
+async function run(asset, isWarmUp) {
   try {
-    return await pipeline.process(path, isWarmUp);
+    return await pipeline.process(asset, isWarmUp);
   } catch (e) {
-    e.fileName = path;
+    e.fileName = asset.name;
     throw e;
   }
 }

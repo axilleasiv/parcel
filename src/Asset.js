@@ -18,7 +18,7 @@ let ASSET_ID = 1;
  * for subclasses to implement.
  */
 class Asset {
-  constructor(name, options) {
+  constructor(name, options, contents) {
     this.id = ASSET_ID++;
     this.name = name;
     this.basename = path.basename(this.name);
@@ -28,7 +28,7 @@ class Asset {
     this.type = path.extname(this.name).slice(1);
 
     this.processed = false;
-    this.contents = options.rendition ? options.rendition.value : null;
+    this.contents = options.rendition ? options.rendition.value : contents;
     this.ast = null;
     this.generated = null;
     this.hash = null;

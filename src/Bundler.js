@@ -27,9 +27,10 @@ const glob = require('glob');
  * creates the bundle tree, and manages the worker farm, cache, and file watcher.
  */
 class Bundler extends EventEmitter {
-  constructor(entryFiles, options = {}) {
+  constructor(entryFiles = null, options = {}) {
     super();
 
+    // this.entryFiles = entryFiles ? this.normalizeEntries(entryFiles) : [];
     this.entryFiles = this.normalizeEntries(entryFiles);
     this.options = this.normalizeOptions(options);
 
@@ -114,7 +115,11 @@ class Bundler extends EventEmitter {
       logLevel: isNaN(options.logLevel) ? 3 : options.logLevel,
       entryFiles: this.entryFiles,
       hmrPort: options.hmrPort || 0,
-      rootDir: getRootDir(this.entryFiles),
+      rootDir:
+        this.entryFiles & !options.noFsReadWrite
+          ? getRootDir(this.entryFiles)
+          : options.rootDir,
+      noFsReadWrite: options.noFsReadWrite,
       sourceMaps:
         typeof options.sourceMaps === 'boolean' ? options.sourceMaps : true,
       hmrHostname:
@@ -198,7 +203,7 @@ class Bundler extends EventEmitter {
     }
   }
 
-  async bundle() {
+  async bundle(contents = null) {
     // If another bundle is already pending, wait for that one to finish and retry.
     if (this.pending) {
       return new Promise((resolve, reject) => {
@@ -226,7 +231,7 @@ class Bundler extends EventEmitter {
 
         this.entryAssets = new Set();
         for (let entry of this.entryFiles) {
-          let asset = await this.resolveAsset(entry);
+          let asset = await this.resolveAsset(entry, null, contents);
           this.buildQueue.add(asset);
           this.entryAssets.add(asset);
         }
@@ -360,17 +365,17 @@ class Bundler extends EventEmitter {
     return asset;
   }
 
-  async resolveAsset(name, parent) {
+  async resolveAsset(name, parent, contents = null) {
     let {path} = await this.resolver.resolve(name, parent);
-    return this.getLoadedAsset(path);
+    return this.getLoadedAsset(path, contents);
   }
 
-  getLoadedAsset(path) {
+  getLoadedAsset(path, contents = null) {
     if (this.loadedAssets.has(path)) {
       return this.loadedAssets.get(path);
     }
 
-    let asset = this.parser.getAsset(path, this.options);
+    let asset = this.parser.getAsset(path, this.options, contents);
     this.loadedAssets.set(path, asset);
 
     this.watch(path, asset);
@@ -503,7 +508,9 @@ class Bundler extends EventEmitter {
     let processed = this.cache && (await this.cache.read(asset.name));
     let cacheMiss = false;
     if (!processed || asset.shouldInvalidate(processed.cacheData)) {
-      processed = await this.farm.run(asset.name);
+      //TODO ??
+      // processed = await this.farm.run(asset.name);
+      processed = await this.farm.run(asset);
       cacheMiss = true;
     }
 

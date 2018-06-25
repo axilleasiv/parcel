@@ -11,18 +11,22 @@ class Packager {
   }
 
   async setup() {
-    // Create sub-directories if needed
-    if (this.bundle.name.includes(path.sep)) {
-      await mkdirp(path.dirname(this.bundle.name));
-    }
+    if (!this.options.noFsReadWrite) {
+      // Create sub-directories if needed
+      if (this.bundle.name.includes(path.sep)) {
+        await mkdirp(path.dirname(this.bundle.name));
+      }
 
-    this.dest = fs.createWriteStream(this.bundle.name);
-    this.dest.write = promisify(this.dest.write.bind(this.dest));
-    this.dest.end = promisify(this.dest.end.bind(this.dest));
+      this.dest = fs.createWriteStream(this.bundle.name);
+      this.dest.write = promisify(this.dest.write.bind(this.dest));
+      this.dest.end = promisify(this.dest.end.bind(this.dest));
+    }
   }
 
   async write(string) {
-    await this.dest.write(string);
+    if (!this.options.noFsReadWrite) {
+      await this.dest.write(string);
+    }
   }
 
   async start() {}
@@ -33,11 +37,17 @@ class Packager {
   }
 
   getSize() {
+    if (this.options.noFsReadWrite) {
+      return 0;
+    }
+
     return this.dest.bytesWritten;
   }
 
   async end() {
-    await this.dest.end();
+    if (!this.options.noFsReadWrite) {
+      await this.dest.end();
+    }
   }
 }
 

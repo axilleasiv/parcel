@@ -21,8 +21,8 @@ const SW_RE = /\bnavigator\s*\.\s*serviceWorker\s*\.\s*register\s*\(/;
 const WORKER_RE = /\bnew\s*Worker\s*\(/;
 
 class JSAsset extends Asset {
-  constructor(name, options) {
-    super(name, options);
+  constructor(name, options, contents) {
+    super(name, options, contents);
     this.type = 'js';
     this.globals = new Map();
     this.isAstDirty = false;

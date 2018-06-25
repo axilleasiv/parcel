@@ -276,6 +276,13 @@ class Bundle {
 
     return hash.digest('hex');
   }
+
+  getOriginalLine(generatedLine) {
+    return this.sourceMapFinal.originalPositionFor({
+      line: generatedLine,
+      column: 0
+    }).line;
+  }
 }
 
 module.exports = Bundle;
