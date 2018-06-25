@@ -13,3 +13,6 @@ dist
 *.min.js
 
 coverage
+
+/example
+/src/builtins/template.js
