@@ -327,9 +327,9 @@ class Bundler extends EventEmitter {
       this.error = err;
 
       logger.error(err);
-
       this.emit('buildError', err);
-
+      this.loadedAssets = new Map();
+      this.entryAssets = null;
       if (this.hmr) {
         this.hmr.emitError(err);
       }
