@@ -5,16 +5,7 @@ const urlJoin = require('../utils/urlJoin');
 const lineCounter = require('../utils/lineCounter');
 const template = require('../builtins/template.js');
 
-//TODO
-const prelude = {
-  source: fs
-    .readFileSync(path.join(__dirname, '../builtins/prelude.js'), 'utf8')
-    .trim(),
-  minified: fs
-    .readFileSync(path.join(__dirname, '../builtins/prelude.min.js'), 'utf8')
-    .trim()
-    .replace(/;$/, '')
-};
+let prelude;
 
 class JSPackager extends Packager {
   async start() {
@@ -24,6 +15,24 @@ class JSPackager extends Packager {
     this.externalModules = new Set();
 
     if (!this.options.noFsReadWrite) {
+      if (!prelude) {
+        prelude = {
+          source: fs
+            .readFileSync(
+              path.join(__dirname, '../builtins/prelude.js'),
+              'utf8'
+            )
+            .trim(),
+          minified: fs
+            .readFileSync(
+              path.join(__dirname, '../builtins/prelude.min.js'),
+              'utf8'
+            )
+            .trim()
+            .replace(/;$/, '')
+        };
+      }
+
       let preludeCode = this.options.minify ? prelude.minified : prelude.source;
       if (this.options.target === 'electron') {
         preludeCode =
