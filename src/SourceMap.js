@@ -37,7 +37,7 @@ class SourceMap {
     return await new SourceMapConsumer(map);
   }
 
-  async addMap(map, lineOffset = 0, columnOffset = 0) {
+  async addMap(map, lineOffset = 0, columnOffset = 0, custom = false) {
     if (!(map instanceof SourceMap) && map.version) {
       let consumer = await this.getConsumer(map);
 
@@ -64,7 +64,7 @@ class SourceMap {
         this.mappings = this.mappings.concat(map.mappings);
       } else {
         map.eachMapping(mapping => {
-          this.addMapping(mapping, lineOffset, columnOffset);
+          this.addMapping(mapping, lineOffset, columnOffset, custom);
         });
       }
 
@@ -78,16 +78,26 @@ class SourceMap {
     return this;
   }
 
-  addMapping(mapping, lineOffset = 0, columnOffset = 0) {
-    this.mappings.push({
-      source: mapping.source,
-      name: mapping.name,
-      original: mapping.original,
-      generated: {
-        line: mapping.generated.line + lineOffset,
-        column: mapping.generated.column + columnOffset
-      }
-    });
+  addMapping(mapping, lineOffset = 0, columnOffset = 0, custom = false) {
+    if (custom) { //TODO check this again, seems to be fixed
+      let newMapping = Object.assign({}, mapping, {
+        generated: {
+          line: mapping.generated.line + lineOffset,
+          column: mapping.generated.column + columnOffset
+        }
+      });
+
+      this.mappings.push(newMapping);
+    } else {
+      this.mappings.push({
+        source: mapping.source,
+        original: mapping.original,
+        generated: {
+          line: mapping.generated.line + lineOffset,
+          column: mapping.generated.column + columnOffset
+        }
+      });
+    }
   }
 
   addConsumerMapping(mapping, lineOffset = 0, columnOffset = 0) {

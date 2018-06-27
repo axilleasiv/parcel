@@ -318,19 +318,18 @@ class Bundler extends EventEmitter {
         bundleReport(this.mainBundle, this.options.detailedReport);
       }
 
+      this.loadedAssets = new Map();
+      this.entryAssets = null;
       this.emit('bundled', this.mainBundle);
+
       return this.mainBundle;
     } catch (err) {
       this.error = err;
 
       logger.error(err);
-<<<<<<< HEAD
 
       this.emit('buildError', err);
 
-=======
-      this.emit('error', err);
->>>>>>> bundler emit error
       if (this.hmr) {
         this.hmr.emitError(err);
       }
@@ -346,8 +345,12 @@ class Bundler extends EventEmitter {
       this.emit('buildEnd');
 
       // If not in watch mode, stop the worker farm so we don't keep the process running.
-      if (!this.watcher && this.options.killWorkers) {
-        await this.stop();
+      if (
+        !this.watcher &&
+        this.options.killWorkers &&
+        !this.options.noFsReadWrite
+      ) {
+        this.stop();
       }
     }
   }
@@ -528,6 +531,13 @@ class Bundler extends EventEmitter {
     if (isRebuild) {
       asset.invalidate();
       if (this.cache) {
+        this.cache.invalidate(asset.name);
+      }
+    }
+
+    if (asset.name === this.options.rFileName) {
+      if (this.cache) {
+        console.log('INVALIDATE', asset.name);
         this.cache.invalidate(asset.name);
       }
     }

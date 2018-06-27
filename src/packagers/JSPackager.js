@@ -5,22 +5,13 @@ const urlJoin = require('../utils/urlJoin');
 const lineCounter = require('../utils/lineCounter');
 const objectHash = require('../utils/objectHash');
 
-const prelude = getExisting(
-  path.join(__dirname, '../builtins/prelude.min.js'),
-  path.join(__dirname, '../builtins/prelude.js')
-);
+// const prelude = getExisting(
+//   path.join(__dirname, '../builtins/prelude.min.js'),
+//   path.join(__dirname, '../builtins/prelude.js')
+// );
 const template = require('../builtins/template.js');
 
-//TODO
-// const prelude = {
-//   source: fs
-//     .readFileSync(path.join(__dirname, '../builtins/prelude.js'), 'utf8')
-//     .trim(),
-//   minified: fs
-//     .readFileSync(path.join(__dirname, '../builtins/prelude.min.js'), 'utf8')
-//     .trim()
-//     .replace(/;$/, '')
-// };
+let prelude;
 
 class JSPackager extends Packager {
   async start() {
@@ -30,6 +21,13 @@ class JSPackager extends Packager {
     this.externalModules = new Set();
 
     if (!this.options.noFsReadWrite) {
+      if (!prelude) {
+        prelude = getExisting(
+          path.join(__dirname, '../builtins/prelude.min.js'),
+          path.join(__dirname, '../builtins/prelude.js')
+        );
+      }
+
       let preludeCode = this.options.minify ? prelude.minified : prelude.source;
       if (this.options.target === 'electron') {
         preludeCode =
