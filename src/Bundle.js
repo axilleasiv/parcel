@@ -281,11 +281,11 @@ class Bundle {
     return hash.digest('hex');
   }
 
-  getOriginalLine(generatedLine) {
+  getOriginal(generatedLine) {
     return this.sourceMapFinal.originalPositionFor({
       line: generatedLine,
       column: 0
-    }).line;
+    });
   }
 }
 
