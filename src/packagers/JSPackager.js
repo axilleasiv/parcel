@@ -3,7 +3,7 @@ const path = require('path');
 const Packager = require('./Packager');
 const urlJoin = require('../utils/urlJoin');
 const lineCounter = require('../utils/lineCounter');
-const template = require('../builtins/template.js');
+const template = require('../builtins/template-minified');
 
 let prelude;
 

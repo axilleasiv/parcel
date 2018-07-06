@@ -503,7 +503,6 @@ class Bundler extends EventEmitter {
 
     if (asset.name === this.options.rFileName) {
       if (this.cache) {
-        console.log('INVALIDATE', asset.name);
         this.cache.invalidate(asset.name);
       }
     }
