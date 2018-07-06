@@ -9,7 +9,7 @@ const objectHash = require('../utils/objectHash');
 //   path.join(__dirname, '../builtins/prelude.min.js'),
 //   path.join(__dirname, '../builtins/prelude.js')
 // );
-const template = require('../builtins/template.js');
+const template = require('../builtins/template-minified');
 
 let prelude;
 
