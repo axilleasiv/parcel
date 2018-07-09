@@ -132,6 +132,7 @@ class Bundler extends EventEmitter {
           : options.rootDir,
       noFsReadWrite: options.noFsReadWrite,
       rFileName: options.rFileName,
+      consoleName: options.consoleName,
       sourceMaps:
         (typeof options.sourceMaps === 'boolean' ? options.sourceMaps : true) &&
         !scopeHoist,
