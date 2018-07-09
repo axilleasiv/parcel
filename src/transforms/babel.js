@@ -134,6 +134,22 @@ async function getBabelConfig(asset) {
       mergeConfigs(babelrc, jsxConfig);
     }
 
+    if (asset.options.noFsReadWrite) {
+      mergeConfigs(babelrc, {
+        plugins: [
+          [
+            require('babel-plugin-transform-custom-console'),
+            {
+              consoleName: asset.options.consoleName,
+              fileName: path.parse(asset.options.rFileName).name
+            }
+          ],
+          require('babel-plugin-transform-object-rest-spread')
+        ],
+        internal: true
+      });
+    }
+
     return babelrc;
   }
 
