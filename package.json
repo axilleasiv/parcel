@@ -13,7 +13,10 @@
     "babel-code-frame": "^6.26.0",
     "babel-core": "^6.25.0",
     "babel-generator": "^6.25.0",
+    "babel-plugin-transform-custom-repl":
+      "git://github.com/axilleasiv/babel-plugin-transform-custom-console.git",
     "babel-plugin-transform-es2015-modules-commonjs": "^6.26.0",
+    "babel-plugin-transform-object-rest-spread": "^6.26.0",
     "babel-plugin-transform-react-jsx": "^6.24.1",
     "babel-preset-env": "^1.7.0",
     "babel-template": "^6.26.0",
