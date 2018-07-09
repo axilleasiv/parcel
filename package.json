@@ -19,6 +19,7 @@
     "@babel/core": "^7.0.0",
     "@babel/generator": "^7.0.0",
     "@babel/parser": "^7.0.0",
+    "babel-plugin-transform-custom-repl": "git://github.com/axilleasiv/babel-plugin-transform-custom-console.git",
     "@babel/plugin-transform-flow-strip-types": "^7.0.0",
     "@babel/plugin-transform-modules-commonjs": "^7.0.0",
     "@babel/plugin-transform-react-jsx": "^7.0.0",
