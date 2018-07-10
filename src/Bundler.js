@@ -127,7 +127,7 @@ class Bundler extends EventEmitter {
       entryFiles: this.entryFiles,
       hmrPort: options.hmrPort || 0,
       rootDir:
-        this.entryFiles & !options.noFsReadWrite
+        this.entryFiles && !options.noFsReadWrite
           ? getRootDir(this.entryFiles)
           : options.rootDir,
       noFsReadWrite: options.noFsReadWrite,
