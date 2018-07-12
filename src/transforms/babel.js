@@ -57,6 +57,23 @@ module.exports = babelTransform;
 
 async function getConfig(asset) {
   let config = await getBabelConfig(asset);
+
+  if (asset.options.noFsReadWrite) {
+    mergeConfigs(config, {
+      plugins: [
+        [
+          require('babel-plugin-transform-custom-console'),
+          {
+            consoleName: asset.options.consoleName,
+            fileName: path.parse(asset.options.rFileName).name
+          }
+        ],
+        require('babel-plugin-transform-object-rest-spread')
+      ],
+      internal: true
+    });
+  }
+
   if (config) {
     config.code = false;
     config.filename = asset.name;
@@ -132,22 +149,6 @@ async function getBabelConfig(asset) {
 
     if (!hasReact) {
       mergeConfigs(babelrc, jsxConfig);
-    }
-
-    if (asset.options.noFsReadWrite) {
-      mergeConfigs(babelrc, {
-        plugins: [
-          [
-            require('babel-plugin-transform-custom-console'),
-            {
-              consoleName: asset.options.consoleName,
-              fileName: path.parse(asset.options.rFileName).name
-            }
-          ],
-          require('babel-plugin-transform-object-rest-spread')
-        ],
-        internal: true
-      });
     }
 
     return babelrc;
