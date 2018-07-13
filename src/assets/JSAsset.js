@@ -138,7 +138,8 @@ class JSAsset extends Asset {
       let opts = {
         sourceMaps: this.options.sourceMaps,
         sourceFileName: this.relativeName,
-        comments: !this.options.noFsReadWrite
+        comments: !this.options.noFsReadWrite,
+        retainLines: true
       };
 
       let generated = generate(this.ast, opts, this.contents);
