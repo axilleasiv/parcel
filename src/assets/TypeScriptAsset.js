@@ -32,6 +32,9 @@ class TypeScriptAsset extends Asset {
       );
     }
     transpilerOptions.compilerOptions.noEmit = false;
+    transpilerOptions.compilerOptions.removeComments = false;
+    transpilerOptions.compilerOptions.target = 'es6';
+    transpilerOptions.compilerOptions.esModuleInterop = true;
     transpilerOptions.compilerOptions.sourceMap = this.options.sourceMaps;
 
     // Transpile Module using TypeScript and parse result as ast format through babylon
