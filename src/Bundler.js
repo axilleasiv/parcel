@@ -254,9 +254,15 @@ class Bundler extends EventEmitter {
 
         this.entryAssets = new Set();
         for (let entry of this.entryFiles) {
-          let asset = await this.resolveAsset(entry, null, contents);
-          this.buildQueue.add(asset);
-          this.entryAssets.add(asset);
+          try {
+            let asset = await this.resolveAsset(entry, null, contents);
+            this.buildQueue.add(asset);
+            this.entryAssets.add(asset);
+          } catch (err) {
+            throw new Error(
+              `Cannot resolve entry "${entry}" from "${this.options.rootDir}"`
+            );
+          }
         }
 
         initialised = true;
