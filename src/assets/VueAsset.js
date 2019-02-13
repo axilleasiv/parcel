@@ -4,8 +4,8 @@ const md5 = require('../utils/md5');
 const {minify} = require('terser');
 
 class VueAsset extends Asset {
-  constructor(name, options, contents) {
-    super(name, options, contents);
+  constructor(name, options) {
+    super(name, options);
     this.type = 'js';
   }
 

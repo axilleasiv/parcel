@@ -3,8 +3,8 @@ const fs = require('../utils/fs');
 const localRequire = require('../utils/localRequire');
 
 class ReasonAsset extends Asset {
-  constructor(name, options, contents) {
-    super(name, options, contents);
+  constructor(name, options) {
+    super(name, options);
     this.type = 'js';
   }
 
