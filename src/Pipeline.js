@@ -10,15 +10,13 @@ class Pipeline {
     this.parser = new Parser(options);
   }
 
-  async process(asset, isWarmUp) {
-    if (!this.options.noFsReadWrite) {
-      // let options = this.options;
-      if (isWarmUp) {
-        // options = Object.assign({ isWarmUp }, options);
-      }
+  async process(path, isWarmUp) {
+    let options = this.options;
+    if (isWarmUp) {
+      options = Object.assign({isWarmUp}, options);
     }
-    //TODO Why to getAsset again?
-    // let asset = this.parser.getAsset(path, options);
+
+    let asset = this.parser.getAsset(path, options);
     let generated = await this.processAsset(asset);
     let generatedMap = {};
     for (let rendition of generated) {
