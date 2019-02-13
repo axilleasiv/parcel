@@ -79,10 +79,10 @@ class Parser {
     return parser;
   }
 
-  getAsset(filename, options = {}, contents = null) {
+  getAsset(filename, options = {}) {
     let Asset = this.findParser(filename);
     options.parser = this;
-    return new Asset(filename, options, contents);
+    return new Asset(filename, options);
   }
 }
 

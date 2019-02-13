@@ -27,8 +27,8 @@ const SOURCEMAP_RE = /\/\/\s*[@#]\s*sourceMappingURL\s*=\s*([^\s]+)/;
 const DATA_URL_RE = /^data:[^;]+(?:;charset=[^;]+)?;base64,(.*)/;
 
 class JSAsset extends Asset {
-  constructor(name, options, contents) {
-    super(name, options, contents);
+  constructor(name, options) {
+    super(name, options);
     this.type = 'js';
     this.globals = new Map();
     this.isAstDirty = false;
@@ -149,8 +149,12 @@ class JSAsset extends Asset {
   }
 
   async pretransform() {
-    await this.loadSourceMap();
-    await babel(this);
+    try {
+      await this.loadSourceMap();
+      await babel(this);
+    } catch (error) {
+      return null;
+    }
 
     // Inline environment variables
     if (this.options.target === 'browser' && ENV_RE.test(this.contents)) {
