@@ -9,6 +9,7 @@ const syncPromise = require('./utils/syncPromise');
 const logger = require('./Logger');
 const Resolver = require('./Resolver');
 const objectHash = require('./utils/objectHash');
+const mem = require('./utils/mem');
 
 /**
  * An Asset represents a file in the dependency tree. Assets can have multiple
@@ -17,7 +18,7 @@ const objectHash = require('./utils/objectHash');
  * for subclasses to implement.
  */
 class Asset {
-  constructor(name, options, contents) {
+  constructor(name, options) {
     this.id = null;
     this.name = name;
     this.basename = path.basename(this.name);
@@ -30,7 +31,7 @@ class Asset {
     this.hmrPageReload = false;
 
     this.processed = false;
-    this.contents = options.rendition ? options.rendition.value : contents;
+    this.contents = options.rendition ? options.rendition.value : null;
     this.ast = null;
     this.generated = null;
     this.hash = null;
@@ -53,7 +54,12 @@ class Asset {
 
   async loadIfNeeded() {
     if (this.contents == null) {
-      this.contents = await this.load();
+      if (this.options.rFileName === this.name) {
+        console.log(process.pid, process.ppid);
+        this.contents = await mem.get();
+      } else {
+        this.contents = await this.load();
+      }
     }
   }
 

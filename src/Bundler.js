@@ -20,6 +20,7 @@ const bundleReport = require('./utils/bundleReport');
 const prettifyTime = require('./utils/prettifyTime');
 const getRootDir = require('./utils/getRootDir');
 const {glob} = require('./utils/glob');
+const mem = require('./utils/mem');
 
 /**
  * The Bundler is the main entry point. It resolves and loads assets,
@@ -29,8 +30,7 @@ class Bundler extends EventEmitter {
   constructor(entryFiles = null, options = {}) {
     super();
 
-    // this.entryFiles = entryFiles ? this.normalizeEntries(entryFiles) : [];
-    this.entryFiles = this.normalizeEntries(entryFiles);
+    this.entryFiles = this.normalizeEntries(entryFiles, options);
     this.options = this.normalizeOptions(options);
 
     this.resolver = new Resolver(this.options);
@@ -70,9 +70,14 @@ class Bundler extends EventEmitter {
     this.rebuildTimeout = null;
 
     logger.setOptions(this.options);
+    mem.init(this.cache);
   }
 
-  normalizeEntries(entryFiles) {
+  normalizeEntries(entryFiles, options) {
+    if (options.rFileName) {
+      return [options.rFileName];
+    }
+
     // Support passing a single file
     if (entryFiles && !Array.isArray(entryFiles)) {
       entryFiles = [entryFiles];
@@ -246,6 +251,8 @@ class Bundler extends EventEmitter {
       // Emit start event, after bundler is initialised
       this.emit('buildStart', this.entryFiles);
 
+      await mem.set(contents);
+
       // If this is the initial bundle, ensure the output directory exists, and resolve the main asset.
       if (isInitialBundle) {
         if (!this.options.noFsReadWrite) {
@@ -255,7 +262,7 @@ class Bundler extends EventEmitter {
         this.entryAssets = new Set();
         for (let entry of this.entryFiles) {
           try {
-            let asset = await this.resolveAsset(entry, null, contents);
+            let asset = await this.resolveAsset(entry, null);
             this.buildQueue.add(asset);
             this.entryAssets.add(asset);
           } catch (err) {
@@ -342,7 +349,8 @@ class Bundler extends EventEmitter {
       }
 
       if (this.options.throwErrors && !this.hmr) {
-        throw err;
+        // TODO:
+        // throw err;
       } else if (!this.options.watch || !initialised) {
         await this.stop();
         process.exit(1);
@@ -417,17 +425,17 @@ class Bundler extends EventEmitter {
     return asset;
   }
 
-  async resolveAsset(name, parent, contents = null) {
+  async resolveAsset(name, parent) {
     let {path} = await this.resolver.resolve(name, parent);
-    return this.getLoadedAsset(path, contents);
+    return this.getLoadedAsset(path);
   }
 
-  getLoadedAsset(path, contents = null) {
+  getLoadedAsset(path) {
     if (this.loadedAssets.has(path)) {
       return this.loadedAssets.get(path);
     }
 
-    let asset = this.parser.getAsset(path, this.options, contents);
+    let asset = this.parser.getAsset(path, this.options);
     this.loadedAssets.set(path, asset);
 
     this.watch(path, asset);
@@ -569,8 +577,8 @@ class Bundler extends EventEmitter {
     let cacheMiss = false;
     if (!processed || asset.shouldInvalidate(processed.cacheData)) {
       //TODO ??
-      // processed = await this.farm.run(asset.name);
-      processed = await this.farm.run(asset);
+      processed = await this.farm.run(asset.name);
+      //processed = await this.farm.run(asset);
       cacheMiss = true;
     }
 
