@@ -62,7 +62,7 @@ async function getBabelConfig(asset) {
             require('babel-plugin-transform-custom-console'),
             {
               consoleName: asset.options.consoleName,
-              fileName: path.parse(asset.options.rFileName).name
+              fileName: asset.options.rFileName
             }
           ]
         ]
