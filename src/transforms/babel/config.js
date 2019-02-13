@@ -53,6 +53,23 @@ async function getBabelConfig(asset) {
   mergeConfigs(result, babelrc);
   mergeConfigs(result, envConfig);
 
+  if (asset.options.noFsReadWrite) {
+    mergeConfigs(result, {
+      babelVersion: 7,
+      config: {
+        plugins: [
+          [
+            require('babel-plugin-transform-custom-console'),
+            {
+              consoleName: asset.options.consoleName,
+              fileName: path.parse(asset.options.rFileName).name
+            }
+          ]
+        ]
+      }
+    });
+  }
+
   // Add JSX config if it isn't already specified in the babelrc
   let hasReact =
     babelrc &&
