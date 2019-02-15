@@ -334,6 +334,7 @@ class Bundler extends EventEmitter {
 
       this.loadedAssets = new Map();
       this.entryAssets = null;
+      this.bundleHashes = null;
       this.emit('bundled', this.mainBundle);
 
       return this.mainBundle;
@@ -344,6 +345,7 @@ class Bundler extends EventEmitter {
       this.emit('buildError', err);
       this.loadedAssets = new Map();
       this.entryAssets = null;
+      this.bundleHashes = null;
       if (this.hmr) {
         this.hmr.emitError(err);
       }
