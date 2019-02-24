@@ -21,12 +21,16 @@ class SourceMapPackager extends Packager {
   async end() {
     let file = path.basename(this.bundle.parentBundle.name);
 
-    await this.write(
-      this.sourceMap.stringify(
-        file,
-        path.relative(this.options.outDir, this.options.rootDir)
-      )
-    );
+    if (this.options.custom) {
+      this.bundler.mainBundle.sourceMapFinal = this.sourceMap;
+    } else {
+      await this.write(
+        this.sourceMap.stringify(
+          file,
+          path.relative(this.options.outDir, this.options.rootDir)
+        )
+      );
+    }
     await super.end();
   }
 }

@@ -20,6 +20,7 @@ const bundleReport = require('./utils/bundleReport');
 const prettifyTime = require('./utils/prettifyTime');
 const getRootDir = require('./utils/getRootDir');
 const {glob, isGlob} = require('./utils/glob');
+const mem = require('./utils/mem');
 
 /**
  * The Bundler is the main entry point. It resolves and loads assets,
@@ -29,9 +30,14 @@ class Bundler extends EventEmitter {
   constructor(entryFiles, options = {}) {
     super();
 
-    entryFiles = this.normalizeEntries(entryFiles);
-    this.watchedGlobs = entryFiles.filter(entry => isGlob(entry));
-    this.entryFiles = this.findEntryFiles(entryFiles);
+    if (options.custom) {
+      this.entryFiles = this.normalizeEntries(entryFiles, options);
+    } else {
+      entryFiles = this.normalizeEntries(entryFiles);
+      this.watchedGlobs = entryFiles.filter(entry => isGlob(entry));
+      this.entryFiles = this.findEntryFiles(entryFiles);
+    }
+
     this.options = this.normalizeOptions(options);
 
     this.resolver = new Resolver(this.options);
@@ -73,7 +79,11 @@ class Bundler extends EventEmitter {
     logger.setOptions(this.options);
   }
 
-  normalizeEntries(entryFiles) {
+  normalizeEntries(entryFiles, options) {
+    if (options && options.custom) {
+      return [options.custom.entryFile];
+    }
+
     // Support passing a single file
     if (entryFiles && !Array.isArray(entryFiles)) {
       entryFiles = [entryFiles];
@@ -131,7 +141,11 @@ class Bundler extends EventEmitter {
       logLevel: isNaN(options.logLevel) ? 3 : options.logLevel,
       entryFiles: this.entryFiles,
       hmrPort: options.hmrPort || 0,
-      rootDir: getRootDir(this.entryFiles),
+      custom: options.custom,
+      rootDir:
+        this.entryFiles && !options.custom
+          ? getRootDir(this.entryFiles)
+          : options.custom.rootDir,
       sourceMaps:
         (typeof options.sourceMaps === 'boolean' ? options.sourceMaps : true) &&
         !scopeHoist,
@@ -228,7 +242,7 @@ class Bundler extends EventEmitter {
     }
   }
 
-  async bundle() {
+  async bundle(contents = null) {
     // If another bundle is already pending, wait for that one to finish and retry.
     if (this.pending) {
       return new Promise((resolve, reject) => {
@@ -253,6 +267,8 @@ class Bundler extends EventEmitter {
 
       // Emit start event, after bundler is initialised
       this.emit('buildStart', this.entryFiles);
+
+      await mem.set(this.options.custom, contents);
 
       // If this is the initial bundle, ensure the output directory exists, and resolve the main asset.
       if (isInitialBundle) {
@@ -337,6 +353,10 @@ class Bundler extends EventEmitter {
         bundleReport(this.mainBundle, this.options.detailedReport);
       }
 
+      this.loadedAssets = new Map();
+      this.entryAssets = null;
+      this.bundleHashes = null;
+
       this.emit('bundled', this.mainBundle);
       return this.mainBundle;
     } catch (err) {
@@ -345,6 +365,10 @@ class Bundler extends EventEmitter {
       logger.error(err);
 
       this.emit('buildError', err);
+
+      this.loadedAssets = new Map();
+      this.entryAssets = null;
+      this.bundleHashes = null;
 
       if (this.hmr) {
         this.hmr.emitError(err);
@@ -361,7 +385,7 @@ class Bundler extends EventEmitter {
       this.emit('buildEnd');
 
       // If not in watch mode, stop the worker farm so we don't keep the process running.
-      if (!this.watcher && this.options.killWorkers) {
+      if (!this.watcher && this.options.killWorkers && !this.options.custom) {
         await this.stop();
       }
     }
@@ -554,6 +578,12 @@ class Bundler extends EventEmitter {
       }
     }
 
+    if (asset.name === this.options.custom.entryFile) {
+      if (this.cache) {
+        this.cache.invalidate(asset.name);
+      }
+    }
+
     await this.loadAsset(asset);
   }
 
@@ -634,7 +664,11 @@ class Bundler extends EventEmitter {
 
     logger.verbose(`Built ${asset.relativeName}...`);
 
-    if (this.cache && cacheMiss) {
+    if (
+      this.cache &&
+      cacheMiss &&
+      this.options.custom.entryFile !== asset.name
+    ) {
       this.cache.write(asset.name, processed);
     }
   }

@@ -10,6 +10,11 @@ const prelude = getExisting(
   path.join(__dirname, '../builtins/prelude.js')
 );
 
+const preludeConsole = getExisting(
+  path.join(__dirname, '../builtins/prelude-console.min.js'),
+  path.join(__dirname, '../builtins/prelude-console.js')
+);
+
 class JSPackager extends Packager {
   async start() {
     this.first = true;
@@ -17,17 +22,26 @@ class JSPackager extends Packager {
     this.bundleLoaders = new Set();
     this.externalModules = new Set();
 
-    let preludeCode = this.options.minify ? prelude.minified : prelude.source;
-    if (this.options.target === 'electron') {
-      preludeCode =
-        `process.env.HMR_PORT=${
-          this.options.hmrPort
-        };process.env.HMR_HOSTNAME=${JSON.stringify(
-          this.options.hmrHostname
-        )};` + preludeCode;
+    if (this.options.custom) {
+      let preludeConsoleCode = preludeConsole.minified;
+      let preludeCode = prelude.minified;
+      await this.write(preludeConsoleCode + ' ;try {\n');
+      await this.write(preludeCode + '({');
+      this.lineOffset =
+        lineCounter(preludeCode) + lineCounter(preludeConsoleCode);
+    } else {
+      let preludeCode = this.options.minify ? prelude.minified : prelude.source;
+      if (this.options.target === 'electron') {
+        preludeCode =
+          `process.env.HMR_PORT=${
+            this.options.hmrPort
+          };process.env.HMR_HOSTNAME=${JSON.stringify(
+            this.options.hmrHostname
+          )};` + preludeCode;
+      }
+      await this.write(preludeCode + '({');
+      this.lineOffset = lineCounter(preludeCode);
     }
-    await this.write(preludeCode + '({');
-    this.lineOffset = lineCounter(preludeCode);
   }
 
   async addAsset(asset) {
@@ -244,6 +258,11 @@ class JSPackager extends Packager {
         await this.write(`\n//# sourceMappingURL=${mapUrl}`);
       }
     }
+
+    if (this.options.custom) {
+      await this.write(`\n} catch (err) {$console.error(err);}`);
+    }
+
     await super.end();
   }
 }

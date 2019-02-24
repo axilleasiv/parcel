@@ -10,6 +10,7 @@ const logger = require('@parcel/logger');
 const Resolver = require('./Resolver');
 const objectHash = require('./utils/objectHash');
 const t = require('babel-types');
+const mem = require('./utils/mem');
 
 /**
  * An Asset represents a file in the dependency tree. Assets can have multiple
@@ -54,8 +55,13 @@ class Asset {
   }
 
   async loadIfNeeded() {
+    console.log(process.pid, process.ppid);
     if (this.contents == null) {
-      this.contents = await this.load();
+      if (this.options.custom.entryFile === this.name) {
+        this.contents = await mem.get(this.options.custom);
+      } else {
+        this.contents = await this.load();
+      }
     }
   }
 
@@ -83,7 +89,7 @@ class Asset {
   }
 
   addDependency(name, opts) {
-    this.dependencies.set(name, Object.assign({name}, opts));
+    this.dependencies.set(name, Object.assign({ name }, opts));
   }
 
   resolveDependency(url, from = this.name) {
@@ -103,7 +109,7 @@ class Asset {
       depName = './' + path.relative(path.dirname(this.name), resolved);
     }
 
-    return {depName, resolved};
+    return { depName, resolved };
   }
 
   addURLDependency(url, from = this.name, opts) {
@@ -116,9 +122,12 @@ class Asset {
       from = this.name;
     }
 
-    const {depName, resolved} = this.resolveDependency(url, from);
+    const { depName, resolved } = this.resolveDependency(url, from);
 
-    this.addDependency(depName, Object.assign({dynamic: true, resolved}, opts));
+    this.addDependency(
+      depName,
+      Object.assign({ dynamic: true, resolved }, opts)
+    );
 
     const parsed = URL.parse(url);
     parsed.pathname = this.options.parser
@@ -156,7 +165,7 @@ class Asset {
     if (conf) {
       // Add as a dependency so it is added to the watcher and invalidates
       // this asset when the config changes.
-      this.addDependency(conf, {includedInParent: true});
+      this.addDependency(conf, { includedInParent: true });
       if (opts.load === false) {
         return conf;
       }

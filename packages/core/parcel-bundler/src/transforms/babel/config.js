@@ -53,6 +53,25 @@ async function getBabelConfig(asset) {
   mergeConfigs(result, babelrc);
   mergeConfigs(result, envConfig);
 
+  if (asset.options.custom) {
+    mergeConfigs(result, {
+      internal: true,
+      babelVersion: 7,
+      config: {
+        plugins: [
+          [
+            require('babel-plugin-transform-custom-console'),
+            {
+              consoleName: asset.options.custom.log,
+              fileName: asset.options.custom.entryFile
+            }
+          ],
+          [require('@babel/plugin-proposal-class-properties')]
+        ]
+      }
+    });
+  }
+
   // Add JSX config if it isn't already specified in the babelrc
   let hasReact =
     babelrc &&

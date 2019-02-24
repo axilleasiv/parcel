@@ -308,7 +308,7 @@ class Resolver {
   async loadAsFile(file, extensions, pkg) {
     // Try all supported extensions
     for (let f of this.expandFile(file, extensions, pkg)) {
-      if (await this.isFile(f)) {
+      if (f === this.options.custom.entryFile || (await this.isFile(f))) {
         return {path: f, pkg};
       }
     }

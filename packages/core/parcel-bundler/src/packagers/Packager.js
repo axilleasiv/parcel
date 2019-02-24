@@ -15,14 +15,17 @@ class Packager {
   }
 
   async setup() {
-    // Create sub-directories if needed
-    if (this.bundle.name.includes(path.sep)) {
-      await mkdirp(path.dirname(this.bundle.name));
-    }
+    //don't write map files
+    if (this.bundle.type !== 'map') {
+      // Create sub-directories if needed
+      if (this.bundle.name.includes(path.sep)) {
+        await mkdirp(path.dirname(this.bundle.name));
+      }
 
-    this.dest = fs.createWriteStream(this.bundle.name);
-    this.dest.write = promisify(this.dest.write.bind(this.dest));
-    this.dest.end = promisify(this.dest.end.bind(this.dest));
+      this.dest = fs.createWriteStream(this.bundle.name);
+      this.dest.write = promisify(this.dest.write.bind(this.dest));
+      this.dest.end = promisify(this.dest.end.bind(this.dest));
+    }
   }
 
   async write(string) {
@@ -37,11 +40,13 @@ class Packager {
   }
 
   getSize() {
-    return this.dest.bytesWritten;
+    return this.dest ? this.dest.bytesWritten : 0;
   }
 
   async end() {
-    await this.dest.end();
+    if (this.bundle.type !== 'map') {
+      await this.dest.end();
+    }
   }
 }
 

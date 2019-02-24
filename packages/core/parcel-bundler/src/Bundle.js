@@ -303,6 +303,13 @@ class Bundle {
 
     return hash.digest('hex');
   }
+
+  getOriginal(generatedLine) {
+    return this.sourceMapFinal.originalPositionFor({
+      line: generatedLine,
+      column: 0
+    });
+  }
 }
 
 module.exports = Bundle;
