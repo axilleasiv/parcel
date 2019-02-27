@@ -1,7 +1,7 @@
 const Asset = require('../Asset');
 const localRequire = require('../utils/localRequire');
 const md5 = require('../utils/md5');
-const {minify} = require('terser');
+// custom: const {minify} = require('terser');
 const t = require('@babel/types');
 
 class VueAsset extends Asset {
@@ -102,7 +102,8 @@ class VueAsset extends Asset {
     supplemental += this.compileHMR(generated, optsVar);
 
     if (this.options.minify && !this.options.scopeHoist) {
-      let {code, error} = minify(supplemental, {toplevel: true});
+      // custom:
+      /* let {code, error} = minify(supplemental, {toplevel: true});
       if (error) {
         throw error;
       }
@@ -110,7 +111,7 @@ class VueAsset extends Asset {
       supplemental = code;
       if (supplemental) {
         supplemental = `\n(function(){${supplemental}})();`;
-      }
+      } */
     }
     js += supplemental;
 

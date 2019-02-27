@@ -1,7 +1,7 @@
 const Asset = require('../Asset');
 const path = require('path');
 const json5 = require('json5');
-const {minify} = require('terser');
+// custom: const {minify} = require('terser');
 
 class JSONAsset extends Asset {
   constructor(name, options) {
@@ -19,12 +19,13 @@ class JSONAsset extends Asset {
     };`;
 
     if (this.options.minify && !this.options.scopeHoist) {
-      let minified = minify(code);
+      //custom:
+      /* let minified = minify(code);
       if (minified.error) {
         throw minified.error;
       }
 
-      code = minified.code;
+      code = minified.code; */
     }
 
     return code;

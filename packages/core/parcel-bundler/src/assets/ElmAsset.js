@@ -1,7 +1,7 @@
 const Asset = require('../Asset');
 const commandExists = require('command-exists');
 const localRequire = require('../utils/localRequire');
-const {minify} = require('terser');
+// custom: const {minify} = require('terser');
 const path = require('path');
 const spawn = require('cross-spawn');
 
@@ -81,7 +81,7 @@ class ElmAsset extends Asset {
     let output = this.contents;
 
     if (this.options.minify) {
-      output = pack(output);
+      // custom: output = pack(output);
     }
 
     return {
@@ -91,7 +91,8 @@ class ElmAsset extends Asset {
     // Recommended minification
     // Based on:
     // - http://elm-lang.org/0.19.0/optimize
-    function pack(source) {
+    // custom:
+    /* function pack(source) {
       let options = {
         compress: {
           keep_fargs: false,
@@ -129,7 +130,7 @@ class ElmAsset extends Asset {
       }
 
       return result.code;
-    }
+    } */
   }
 
   generateErrorMessage(err) {

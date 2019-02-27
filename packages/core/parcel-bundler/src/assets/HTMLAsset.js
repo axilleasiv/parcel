@@ -3,7 +3,7 @@ const api = require('posthtml/lib/api');
 const urlJoin = require('../utils/urlJoin');
 const render = require('posthtml-render');
 const posthtmlTransform = require('../transforms/posthtml');
-const htmlnanoTransform = require('../transforms/htmlnano');
+// custom: const htmlnanoTransform = require('../transforms/htmlnano');
 const isURL = require('../utils/is-url');
 
 // A list of all attributes that may produce a dependency
@@ -204,7 +204,7 @@ class HTMLAsset extends Asset {
 
   async transform() {
     if (this.options.minify) {
-      await htmlnanoTransform(this);
+      // custom: await htmlnanoTransform(this);
     }
   }
 

@@ -11,7 +11,7 @@ const processVisitor = require('../visitors/process');
 const babel = require('../transforms/babel/transform');
 const babel7 = require('../transforms/babel/babel7');
 const generate = require('@babel/generator').default;
-const terser = require('../transforms/terser');
+// custom: const terser = require('../transforms/terser');
 const SourceMap = require('../SourceMap');
 const hoist = require('../scope-hoisting/hoist');
 const loadSourceMap = require('../utils/loadSourceMap');
@@ -134,7 +134,7 @@ class JSAsset extends Asset {
     }
 
     if (this.options.minify) {
-      await terser(this);
+      // custom: await terser(this);
     }
   }
 

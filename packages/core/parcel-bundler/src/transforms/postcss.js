@@ -3,7 +3,7 @@ const loadPlugins = require('../utils/loadPlugins');
 const md5 = require('../utils/md5');
 const postcss = require('postcss');
 const FileSystemLoader = require('css-modules-loader-core/lib/file-system-loader');
-const semver = require('semver');
+// custom: const semver = require('semver');
 const path = require('path');
 const fs = require('@parcel/fs');
 
@@ -66,7 +66,8 @@ async function getConfig(asset) {
   }
 
   if (asset.options.minify) {
-    let cssnano = await localRequire('cssnano', asset.name);
+    // custom:
+    /* let cssnano = await localRequire('cssnano', asset.name);
     let {version} = await localRequire('cssnano/package.json', asset.name);
     config.plugins.push(
       cssnano(
@@ -77,7 +78,7 @@ async function getConfig(asset) {
           safe: semver.satisfies(version, '<4.0.0-rc')
         }
       )
-    );
+    ); */
   }
 
   config.from = asset.name;

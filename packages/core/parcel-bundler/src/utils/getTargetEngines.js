@@ -1,4 +1,4 @@
-const browserslist = require('browserslist');
+// const browserslist = require('browserslist');
 const semver = require('semver');
 const Path = require('path');
 
@@ -80,7 +80,7 @@ async function getTargetEngines(asset, isTargetApp) {
     }
 
     if (targets.browsers) {
-      targets.browsers = browserslist(targets.browsers).sort();
+      // custom: targets.browsers = browserslist(targets.browsers).sort();
     }
   }
 
@@ -109,7 +109,7 @@ async function loadBrowserslist(asset, path) {
   });
 
   if (config) {
-    return browserslist.readConfig(config);
+    // custom: return browserslist.readConfig(config);
   }
 }
 
