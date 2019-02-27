@@ -9,7 +9,7 @@ const FSCache = require('./FSCache');
 // custom: const HMRServer = require('./HMRServer');
 // custom: const Server = require('./Server');
 const {EventEmitter} = require('events');
-const logger = require('@parcel/logger');
+const logger = require('./utils/escapeLogger');
 const PackagerRegistry = require('./packagers');
 const localRequire = require('./utils/localRequire');
 const config = require('./utils/config');
@@ -349,7 +349,10 @@ class Bundler extends EventEmitter {
       let buildTime = Date.now() - startTime;
       let time = prettifyTime(buildTime);
       logger.success(`Built in ${time}.`);
-      if (!this.watcher) {
+      if (
+        !this.watcher &&
+        (this.options.custom && this.options.custom.report)
+      ) {
         bundleReport(this.mainBundle, this.options.detailedReport);
       }
 
