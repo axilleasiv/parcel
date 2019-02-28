@@ -207,9 +207,15 @@ class JSPackager extends Packager {
 
       loads += 'b.load(' + JSON.stringify(preload) + ')';
       if (this.bundle.entryAsset) {
-        loads += `.then(function(){require(${JSON.stringify(
-          this.bundle.entryAsset.id
-        )});})`;
+        if (this.options.custom) {
+          loads += `.then(function(){require(${JSON.stringify(
+            this.bundle.entryAsset.id
+          )});}).catch(function(e){$console.error(e);})`;
+        } else {
+          loads += `.then(function(){require(${JSON.stringify(
+            this.bundle.entryAsset.id
+          )});})`;
+        }
       }
 
       loads += ';';
@@ -247,7 +253,7 @@ class JSPackager extends Packager {
         JSON.stringify(this.options.global || null) +
         ')'
     );
-    if (this.options.sourceMaps) {
+    if (this.options.sourceMaps && !this.options.custom) {
       // Add source map url if a map bundle exists
       let mapBundle = this.bundle.siblingBundlesMap.get('map');
       if (mapBundle) {
