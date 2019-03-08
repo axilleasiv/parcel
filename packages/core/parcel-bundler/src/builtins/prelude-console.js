@@ -52,19 +52,15 @@ var $console = {
   log: function () {
     var args = Array.prototype.slice.call(arguments);
     var line = args.pop();
+    var error = errorToJson(new Error());
 
     if (process.send) {
-      process.send({ type: 'console', line: line, values: inspect(args) });
-    } else {
-      console.log({ line: line, values: inspect(args) })
+      process.send({ type: 'console', line: line, values: inspect(args), error: error });
     }
-
   },
   error: function (error) {
     if (process.send) {
       process.send({ type: 'error', error: errorToJson(error) });
-    } else {
-      console.error({ type: 'error', error: errorToJson(error) })
     }
   }
 };
