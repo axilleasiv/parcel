@@ -55,7 +55,6 @@ class Asset {
   }
 
   async loadIfNeeded() {
-    console.log(process.pid, process.ppid);
     if (this.contents == null) {
       if (this.options.custom.entryFile === this.name) {
         this.contents = await mem.get(this.options.custom);
