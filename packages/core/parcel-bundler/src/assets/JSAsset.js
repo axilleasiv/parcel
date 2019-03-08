@@ -127,7 +127,14 @@ class JSAsset extends Asset {
         await babel7(this, {
           internal: true,
           config: {
-            plugins: [require('@babel/plugin-transform-modules-commonjs')]
+            plugins: [
+              [
+                require('@babel/plugin-transform-modules-commonjs'),
+                {
+                  strictMode: false
+                }
+              ]
+            ]
           }
         });
       }
