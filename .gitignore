@@ -8,7 +8,7 @@ dist
 lib
 .vscode/
 .idea/
-*.min.js
+# *.min.js
 # Logs
 logs
 *.log
