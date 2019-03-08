@@ -1,12 +1,12 @@
 {
-  "name": "parcel-bundler",
-  "version": "1.12.3",
+  "name": "@achil/parcel-bundler",
+  "version": "1.11.2",
   "description": "Blazing fast, zero configuration web application bundler",
   "main": "index.js",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/parcel-bundler/parcel.git"
+    "url": "https://github.com/axilleasiv/parcel/tree/vs-repl"
   },
   "files": [
     "bin/",
@@ -15,6 +15,7 @@
     "index.js"
   ],
   "dependencies": {
+    "@achil/workers": "^1.11.0",
     "@babel/code-frame": "^7.0.0",
     "@babel/core": "^7.4.4",
     "@babel/generator": "^7.4.4",
@@ -30,7 +31,6 @@
     "@iarna/toml": "^2.2.0",
     "@parcel/fs": "^1.11.0",
     "@parcel/utils": "^1.11.0",
-    "@parcel/workers": "^1.11.0",
     "babylon-walk": "^1.0.2",
     "clone": "^2.1.1",
     "command-exists": "^1.2.6",
@@ -111,8 +111,6 @@
     "report-coverage": "nyc report --reporter=lcov --reporter=cobertura --reporter=html && codecov",
     "test-ci": "yarn test-coverage && yarn report-coverage",
     "format": "prettier --write \"./{src,bin,test}/**/*.{js,json,md}\"",
-    "build": "yarn minify && babel src -d lib && ncp src/builtins lib/builtins",
-    "prepublish": "yarn build",
     "minify": "terser -c -m -o src/builtins/prelude.min.js src/builtins/prelude.js && terser -c -m -o src/builtins/prelude2.min.js src/builtins/prelude2.js",
     "precommit": "lint-staged",
     "lint": "eslint . && prettier \"./{src,bin,test}/**/*.{js,json,md}\" --list-different",

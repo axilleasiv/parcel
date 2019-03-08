@@ -7,7 +7,7 @@ const pipeSpawn = require('./pipeSpawn');
 const PromiseQueue = require('./PromiseQueue');
 const path = require('path');
 const fs = require('@parcel/fs');
-const WorkerFarm = require('@parcel/workers');
+const WorkerFarm = require('@achil/workers');
 
 const YARN_LOCK = 'yarn.lock';
 
