@@ -21,46 +21,70 @@
 
     return paths;
   };
+
+  if (process.argv[2] && process.argv[2] === 'dom') {
+    require('repl-dom');
+  }
+
+  process.on('disconnect', function () {
+    process.exit();
+  });
 })();
 
-var inspect = require('util').inspect;
+var $console = (function(){
+  var inspect = require('util').inspect;
+  var config = {
+    errors: false
+  };
 
-function errorToJson(error) {
-  if (typeof error === 'string') {
-    return { message: error };
+  if (process.argv[3] && process.argv[3] === 'errors') {
+    config.errors = true;
   }
 
-  if (error instanceof Error) {
-    var jsonError = {
-      message: error.message,
-      stack: error.stack,
-      name: error.name
-    };
-    // Add all custom codeFrame properties
-    Object.keys(error).forEach(function(key) {
-      jsonError[key] = error[key];
-    });
-    return jsonError;
-  }
-}
-
-process.on('disconnect', function() {
-  process.exit();
-});
-
-var $console = {
-  log: function () {
-    var args = Array.prototype.slice.call(arguments);
-    var line = args.pop();
-    var error = errorToJson(new Error());
-
-    if (process.send) {
-      process.send({ type: 'console', line: line, values: inspect(args), error: error });
+  function errorToJson(error) {
+    if (typeof error === 'string') {
+      return { message: error };
     }
-  },
-  error: function (error) {
-    if (process.send) {
-      process.send({ type: 'error', error: errorToJson(error) });
+
+    if (error instanceof Error) {
+      var jsonError = {
+        message: error.message,
+        stack: error.stack,
+        name: error.name
+      };
+      // Add all custom codeFrame properties
+      Object.keys(error).forEach(function (key) {
+        jsonError[key] = error[key];
+      });
+      return jsonError;
     }
   }
-};
+
+  return {
+    log: function () {
+      var args = Array.prototype.slice.call(arguments);
+      var obj = {
+        type: 'console',
+        line: args.pop(),
+        values: inspect(args)
+      }
+
+      if (config.errors) {
+        obj.error = errorToJson(new Error());
+      }
+
+      if (process.send) {
+        process.send(obj);
+      } else {
+        console.log(obj);
+      }
+    },
+    error: function (error) {
+      if (process.send) {
+        process.send({ type: 'error', error: errorToJson(error) });
+      } else {
+        console.log({ type: 'error', error: errorToJson(error) });
+      }
+    }
+  };
+})()
