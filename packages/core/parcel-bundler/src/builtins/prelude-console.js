@@ -2,8 +2,8 @@
   var Module = require('module').Module;
   var origin_nodeModulePaths = Module._nodeModulePaths;
 
-  var dir = process.cwd();
-  var dirPaths = origin_nodeModulePaths(dir).filter(function (dirPath) {
+  var rootDir = process.cwd();
+  var dirPaths = origin_nodeModulePaths(rootDir).filter(function (dirPath) {
     return module.paths.indexOf(dirPath) === -1;
   });
 
@@ -23,7 +23,22 @@
   };
 
   if (process.argv[2] && process.argv[2] === 'dom') {
-    require('repl-dom');
+    var config;
+    var fs = require('fs');
+    var path = require('path');
+    var pkgPath = path.join(rootDir, 'package.json');
+    var pkgPathExists = fs.existsSync(pkgPath);
+
+    if (pkgPathExists) {
+      try {
+        var pkg = require(pkgPath);
+        config = pkg.jsRepl;
+      } catch (err) {
+        process.send({ type: 'other', error: 'no package.json' });
+      }
+    }
+
+    require('@achil/repl-dom')(config);
   }
 
   process.on('disconnect', function () {
@@ -75,15 +90,11 @@ var $console = (function(){
 
       if (process.send) {
         process.send(obj);
-      } else {
-        console.log(obj);
       }
     },
     error: function (error) {
       if (process.send) {
         process.send({ type: 'error', error: errorToJson(error) });
-      } else {
-        console.log({ type: 'error', error: errorToJson(error) });
       }
     }
   };
