@@ -145,7 +145,7 @@ class Bundler extends EventEmitter {
       rootDir:
         this.entryFiles && !options.custom
           ? getRootDir(this.entryFiles)
-          : options.custom.rootDir,
+          : options.custom.relativeDir,
       sourceMaps:
         (typeof options.sourceMaps === 'boolean' ? options.sourceMaps : true) &&
         !scopeHoist,
