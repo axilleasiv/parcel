@@ -1,11 +1,14 @@
 class Logger {
-  constructor(options) {
-    this.setOptions(options);
+  setOptions(options) {
+    this.enabled = options.custom.logger;
+    this.setFallBacks();
   }
 
-  setOptions() {
+  setFallBacks() {
     var func = function(msg) {
-      // console.log(msg);
+      if (this.enabled) {
+        console.log(msg);
+      }
       return;
     };
 
