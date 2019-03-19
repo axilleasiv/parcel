@@ -13,7 +13,8 @@ class CoffeeScriptAsset extends Asset {
 
     // Transpile Module using CoffeeScript and parse result as ast format through babylon
     let transpiled = coffee.compile(this.contents, {
-      sourceMap: this.options.sourceMaps
+      sourceMap: this.options.sourceMaps,
+      bare: true
     });
 
     let sourceMap;
