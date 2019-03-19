@@ -4,7 +4,8 @@ class Logger {
   }
 
   setOptions() {
-    var func = function() {
+    var func = function(msg) {
+      // console.log(msg);
       return;
     };
 
@@ -15,6 +16,7 @@ class Logger {
     this.clear = func;
     this.progress = func;
     this.verbose = func;
+    this.writeRaw = func;
   }
 }
 // custom: require('@parcel/logger');
