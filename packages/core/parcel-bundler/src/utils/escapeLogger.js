@@ -6,7 +6,7 @@ class Logger {
 
   setFallBacks() {
     var func = function(msg) {
-      if (this.enabled) {
+      if (this.enabled && msg) {
         console.log(msg);
       }
       return;
