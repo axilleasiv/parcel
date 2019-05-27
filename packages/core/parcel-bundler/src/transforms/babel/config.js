@@ -70,7 +70,7 @@ async function getBabelConfig(asset) {
             }
           ],
           [
-            require('babel-plugin-transform-custom-console'),
+            require('@achil/babel-plugin-console'),
             {
               fileName: entryFile,
               consoleName: log
