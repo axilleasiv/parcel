@@ -51,6 +51,8 @@ var $console = (function(){
   var config = {
     errors: false
   };
+  var cvVar = JSON.parse(process.env.jsRepl).cvVar;
+  var cvInitial = false;
 
   if (process.argv[3] && process.argv[3] === 'errors') {
     config.errors = true;
@@ -88,14 +90,30 @@ var $console = (function(){
         obj.error = errorToJson(new Error());
       }
 
-      if (process.send) {
-        process.send(obj);
-      }
+      process.send(obj);
     },
     error: function (error) {
-      if (process.send) {
-        process.send({ type: 'error', error: errorToJson(error) });
+      process.send({ type: 'error', error: errorToJson(error) });
+    },
+    covLog: function(obj) {
+      let cov;
+      if (cov = global[cvVar]) {
+        if (!cvInitial) {
+          process.send({ type: 'cov', cov: cov });
+          cvInitial = true;
+        } else if (cvInitial && obj) {
+          process.send({ type: 'cov', covAsync: obj });
+        }
       }
+    },
+    cov: function(type, id, index) {
+      if (!cvInitial) return;
+
+      this.covLog({
+        type: type,
+        id: id,
+        index: index
+      })
     }
   };
 })()

@@ -54,16 +54,26 @@ async function getBabelConfig(asset) {
   mergeConfigs(result, envConfig);
 
   if (asset.options.custom) {
+    const {entryFile, cvVar, cvIncreaseCb, log} = asset.options.custom;
+
     mergeConfigs(result, {
       internal: true,
       babelVersion: 7,
       config: {
         plugins: [
           [
+            require('@achil/babel-plugin-istanbul'),
+            {
+              fileName: entryFile,
+              cvVar,
+              cvIncreaseCb
+            }
+          ],
+          [
             require('babel-plugin-transform-custom-console'),
             {
-              consoleName: asset.options.custom.log,
-              fileName: asset.options.custom.entryFile
+              fileName: entryFile,
+              consoleName: log
             }
           ],
           [require('@babel/plugin-proposal-class-properties')]

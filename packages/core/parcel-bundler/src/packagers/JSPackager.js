@@ -210,7 +210,7 @@ class JSPackager extends Packager {
         if (this.options.custom) {
           loads += `.then(function(){require(${JSON.stringify(
             this.bundle.entryAsset.id
-          )});}).catch(function(e){$console.error(e);})`;
+          )});}).catch(function(e){$console.covLog();$console.error(e);})`;
         } else {
           loads += `.then(function(){require(${JSON.stringify(
             this.bundle.entryAsset.id
@@ -266,7 +266,9 @@ class JSPackager extends Packager {
     }
 
     if (this.options.custom) {
-      await this.write(`\n} catch (err) {$console.error(err);}`);
+      await this.write(
+        `;$console.covLog()\n} catch (err) {$console.covLog();$console.error(err);}`
+      );
     }
 
     await super.end();
