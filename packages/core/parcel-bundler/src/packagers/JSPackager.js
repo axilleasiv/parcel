@@ -210,7 +210,9 @@ class JSPackager extends Packager {
         if (this.options.custom) {
           loads += `.then(function(){require(${JSON.stringify(
             this.bundle.entryAsset.id
-          )});}).catch(function(e){$console.covLog();$console.error(e);})`;
+          )});}).catch(function(e){${this.options.custom.log}.covLog();${
+            this.options.custom.log
+          }.error(e);})`;
         } else {
           loads += `.then(function(){require(${JSON.stringify(
             this.bundle.entryAsset.id
@@ -267,7 +269,9 @@ class JSPackager extends Packager {
 
     if (this.options.custom) {
       await this.write(
-        `;$console.covLog()\n} catch (err) {$console.covLog();$console.error(err);}`
+        `;${this.options.custom.log}.covLog()\n} catch (err) {${
+          this.options.custom.log
+        }.covLog();${this.options.custom.log}.error(err);}`
       );
     }
 
