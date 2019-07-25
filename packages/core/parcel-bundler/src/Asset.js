@@ -56,7 +56,7 @@ class Asset {
 
   async loadIfNeeded() {
     if (this.contents == null) {
-      if (this.options.custom.entryFile === this.name) {
+      if (this.options.custom && this.options.custom.entryFile === this.name) {
         this.contents = await mem.get(this.options.custom);
       } else {
         this.contents = await this.load();

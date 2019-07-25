@@ -268,7 +268,9 @@ class Bundler extends EventEmitter {
       // Emit start event, after bundler is initialised
       this.emit('buildStart', this.entryFiles);
 
-      await mem.set(this.options.custom, contents);
+      if (this.options.custom) {
+        await mem.set(this.options.custom, contents);
+      }
 
       // If this is the initial bundle, ensure the output directory exists, and resolve the main asset.
       if (isInitialBundle) {
@@ -583,7 +585,7 @@ class Bundler extends EventEmitter {
       }
     }
 
-    if (asset.name === this.options.custom.entryFile) {
+    if (this.options.custom && asset.name === this.options.custom.entryFile) {
       if (this.cache) {
         this.cache.invalidate(asset.name);
       }
