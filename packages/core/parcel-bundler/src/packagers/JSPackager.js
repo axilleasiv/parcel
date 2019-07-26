@@ -25,7 +25,7 @@ class JSPackager extends Packager {
     if (this.options.custom) {
       let preludeConsoleCode = preludeConsole.minified;
       let preludeCode = prelude.minified;
-      await this.write(preludeConsoleCode + ' try {\n');
+      await this.write(preludeConsoleCode + ' ;try {\n');
       await this.write(preludeCode + '({');
       const preludeLines =
         lineCounter(preludeCode) + lineCounter(preludeConsoleCode);
