@@ -222,6 +222,7 @@ class Bundle {
     await packager.end();
 
     this.totalSize = packager.getSize();
+    this.preludeLines = packager.preludeLines;
 
     let assetArray = Array.from(this.assets);
     let assetStartTime =

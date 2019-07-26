@@ -1,6 +1,6 @@
 {
   "name": "@achil/parcel-bundler",
-  "version": "1.11.7",
+  "version": "1.11.8",
   "description": "Blazing fast, zero configuration web application bundler",
   "main": "index.js",
   "license": "MIT",

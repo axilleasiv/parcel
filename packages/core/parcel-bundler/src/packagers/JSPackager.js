@@ -25,10 +25,12 @@ class JSPackager extends Packager {
     if (this.options.custom) {
       let preludeConsoleCode = preludeConsole.minified;
       let preludeCode = prelude.minified;
-      await this.write(preludeConsoleCode + ' ;try {\n');
+      await this.write(preludeConsoleCode + ' try {\n');
       await this.write(preludeCode + '({');
-      this.lineOffset =
+      const preludeLines =
         lineCounter(preludeCode) + lineCounter(preludeConsoleCode);
+      this.preludeLines = preludeLines;
+      this.lineOffset = preludeLines;
     } else {
       let preludeCode = this.options.minify ? prelude.minified : prelude.source;
       if (this.options.target === 'electron') {
