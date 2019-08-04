@@ -79,7 +79,10 @@ class Resolver {
   }
 
   async resolveModule(filename, parent) {
-    let dir = parent ? path.dirname(parent) : process.cwd();
+    const rootDir = this.options.custom
+      ? this.options.custom.rootDir
+      : process.cwd();
+    let dir = parent ? path.dirname(parent) : rootDir;
 
     // If this isn't the entrypoint, resolve the input file to an absolute path
     if (parent) {
@@ -121,22 +124,25 @@ class Resolver {
   }
 
   resolveFilename(filename, dir) {
+    const rootDir = this.options.custom.rootDir
+      ? this.options.custom.rootDir
+      : this.options.rootDir;
+
     switch (filename[0]) {
       case '/':
         // Absolute path. Resolve relative to project root.
-        return path.resolve(this.options.rootDir, filename.slice(1));
-
+        return path.resolve(rootDir, filename.slice(1));
       case '~':
         // Tilde path. Resolve relative to nearest node_modules directory,
         // or the project root - whichever comes first.
         while (
-          dir !== this.options.rootDir &&
+          dir !== rootDir &&
           path.basename(path.dirname(dir)) !== 'node_modules'
         ) {
           dir = path.dirname(dir);
 
           if (dir === path.dirname(dir)) {
-            dir = this.options.rootDir;
+            dir = rootDir;
             break;
           }
         }
