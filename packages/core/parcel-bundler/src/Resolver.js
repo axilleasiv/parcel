@@ -445,6 +445,21 @@ class Resolver {
 
     // Load the local package, and resolve aliases
     let pkg = await this.findPackage(dir);
+
+    if (this.options.custom) {
+      // used to suppor alias importing like node_module(one word)
+      // relative and @scope/modules are ignored
+      if (filename.indexOf(path.sep) === -1) {
+        const aliases = pkg && pkg.alias;
+        if (aliases) {
+          const alias = aliases[filename];
+          if (typeof alias === 'string') {
+            return this.resolveFilename(alias, dir);
+          }
+        }
+      }
+    }
+
     return this.resolveAliases(filename, pkg);
   }
 }

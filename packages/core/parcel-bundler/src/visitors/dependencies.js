@@ -8,6 +8,7 @@ const {nodeBuiltins} = require('../builtins/index');
 const requireTemplate = template('require("_bundle_loader")');
 const argTemplate = template('require.resolve(MODULE)');
 const serviceWorkerPattern = ['navigator', 'serviceWorker', 'register'];
+const getModuleParts = require('../utils/getModuleParts');
 
 module.exports = {
   ImportDeclaration(node, asset) {
@@ -73,7 +74,6 @@ module.exports = {
       // Treat service workers as an entry point so filenames remain consistent across builds.
       // https://developers.google.com/web/fundamentals/primers/service-workers/lifecycle#avoid_changing_the_url_of_your_service_worker_script
       addURLDependency(asset, args[0], {entry: true, isolated: true});
-      return;
     }
   },
 
@@ -88,7 +88,6 @@ module.exports = {
 
     if (isWebWorker) {
       addURLDependency(asset, args[0], {isolated: true});
-      return;
     }
   }
 };
@@ -171,11 +170,43 @@ function addDependency(asset, node, opts = {}) {
 
   if (!asset.options.bundleNodeModules) {
     const isRelativeImport = /^[/~.]/.test(node.value);
-    if (!isRelativeImport) return;
+
+    if (asset.options.custom) {
+      // resolve alias for vue cause it runs on node target etc.
+      const name = node.value;
+      const {alias, source} = asset._package;
+      const aliasPkg = isAlias(alias, name);
+      const sourcePkg = isAlias(source, name);
+
+      //support relative, absoluted, tilted and aliased path
+      if (!(['.', '/', '~'].includes(name[0]) || aliasPkg || sourcePkg)) {
+        return;
+      }
+    } else {
+      if (!isRelativeImport) {
+        return;
+      }
+    }
   }
 
   opts.loc = node.loc && node.loc.start;
   asset.addDependency(node.value, opts);
+}
+
+function isAlias(aliases, name) {
+  if (!aliases) {
+    return false;
+  }
+
+  if (aliases[name]) {
+    return true;
+  }
+
+  if (aliases[getModuleParts(name)[0]]) {
+    return true;
+  }
+
+  return false;
 }
 
 function addURLDependency(asset, node, opts = {}) {

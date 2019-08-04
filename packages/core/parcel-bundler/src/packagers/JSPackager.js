@@ -22,7 +22,8 @@ class JSPackager extends Packager {
     this.bundleLoaders = new Set();
     this.externalModules = new Set();
 
-    if (this.options.custom) {
+    // only on the root bundle
+    if (this.options.custom && !this.bundle.parentBundle.type) {
       let preludeConsoleCode = preludeConsole.minified;
       let preludeCode = prelude.minified;
       await this.write(preludeConsoleCode + ' ;try {\n');
@@ -32,7 +33,10 @@ class JSPackager extends Packager {
       this.preludeLines = preludeLines;
       this.lineOffset = preludeLines;
     } else {
-      let preludeCode = this.options.minify ? prelude.minified : prelude.source;
+      let preludeCode =
+        this.options.minify || this.options.custom
+          ? prelude.minified
+          : prelude.source;
       if (this.options.target === 'electron') {
         preludeCode =
           `process.env.HMR_PORT=${
@@ -212,9 +216,9 @@ class JSPackager extends Packager {
         if (this.options.custom) {
           loads += `.then(function(){require(${JSON.stringify(
             this.bundle.entryAsset.id
-          )});}).catch(function(e){${this.options.custom.log}.covLog();${
+          )});}).catch(function(e){${this.options.custom.log}.error(e);${
             this.options.custom.log
-          }.error(e);})`;
+          }.covLog();})`;
         } else {
           loads += `.then(function(){require(${JSON.stringify(
             this.bundle.entryAsset.id
@@ -269,11 +273,11 @@ class JSPackager extends Packager {
       }
     }
 
-    if (this.options.custom) {
+    if (this.options.custom && !this.bundle.parentBundle.type) {
       await this.write(
         `;${this.options.custom.log}.covLog()\n} catch (err) {${
           this.options.custom.log
-        }.covLog();${this.options.custom.log}.error(err);}`
+        }.error(err);${this.options.custom.log}.covLog();}`
       );
     }
 

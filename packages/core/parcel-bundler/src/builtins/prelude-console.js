@@ -97,8 +97,8 @@
             process.send({ type: 'cov', cov: cov });
             cvInitial = true;
 
+            process.send({ type: 'end', kind: 'sync' });
             if (envRepl.test) {
-              process.send({ type: 'end', kind: 'sync' });
               asyncEnd.check(50).then(function() {
                 process.send({ type: 'end', kind: 'async' });
               });
