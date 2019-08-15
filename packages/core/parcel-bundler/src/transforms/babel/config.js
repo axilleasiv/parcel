@@ -54,7 +54,13 @@ async function getBabelConfig(asset) {
   mergeConfigs(result, envConfig);
 
   if (asset.options.custom) {
-    const {entryFile, cvVar, cvIncreaseCb, log} = asset.options.custom;
+    const {
+      entryFile,
+      cvVar,
+      cvIncreaseCb,
+      log,
+      included
+    } = asset.options.custom;
 
     mergeConfigs(result, {
       internal: true,
@@ -66,14 +72,16 @@ async function getBabelConfig(asset) {
             {
               fileName: entryFile,
               cvVar,
-              cvIncreaseCb
+              cvIncreaseCb,
+              included
             }
           ],
           [
             require('@achil/babel-plugin-console'),
             {
               fileName: entryFile,
-              consoleName: log
+              consoleName: log,
+              included
             }
           ],
           [require('@babel/plugin-proposal-class-properties')]

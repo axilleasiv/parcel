@@ -45,6 +45,14 @@ class JSPackager extends Packager {
             this.options.hmrHostname
           )};` + preludeCode;
       }
+
+      if (
+        this.options.custom &&
+        this.options.custom.included.includes(this.bundle.entryAsset.id)
+      ) {
+        await this.write('try {\n');
+      }
+
       await this.write(preludeCode + '({');
       this.lineOffset = lineCounter(preludeCode);
     }
@@ -135,8 +143,21 @@ class JSPackager extends Packager {
     wrapped +=
       JSON.stringify(id) +
       ':[function(require,module,exports) {\n' +
-      (code || '') +
-      '\n},';
+      (code || '');
+
+    if (
+      this.options.custom &&
+      // !this.bundle.parentBundle.type &&
+      this.bundle.entryAsset.id === id &&
+      this.options.custom.included.includes(id)
+      // this.options.custom.filename === id
+      // this.options.custom.included.includes(id)
+    ) {
+      wrapped += `\ndebugger;${this.options.custom.log}.covLog();},`;
+    } else {
+      wrapped += '\n},';
+    }
+
     wrapped += JSON.stringify(deps);
     wrapped += ']';
 
@@ -273,11 +294,15 @@ class JSPackager extends Packager {
       }
     }
 
-    if (this.options.custom && !this.bundle.parentBundle.type) {
+    // if (this.options.custom && !this.bundle.parentBundle.type) {
+    if (
+      this.options.custom &&
+      this.options.custom.included.includes(this.bundle.entryAsset.id)
+    ) {
       await this.write(
-        `;${this.options.custom.log}.covLog()\n} catch (err) {${
+        `;\n} catch (err) {${this.options.custom.log}.error(err);${
           this.options.custom.log
-        }.error(err);${this.options.custom.log}.covLog();}`
+        }.covLog();}`
       );
     }
 

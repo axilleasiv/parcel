@@ -50,7 +50,7 @@
   global['$console' + envRepl.cvVar] = (function() {
     var inspect = require('util').inspect;
     var cvVar = envRepl.cvVar;
-    var cvInitial = false;
+    var cvFiles = [];
     var asyncEnd;
 
     if (envRepl.test) {
@@ -76,13 +76,24 @@
       }
     }
 
+    function onTesting() {
+      process.send({ type: 'end', kind: 'sync' });
+      if (envRepl.test) {
+        asyncEnd.check(50).then(function() {
+          process.send({ type: 'end', kind: 'async' });
+        });
+      }
+    }
+
     return {
       log: function() {
         var args = Array.prototype.slice.call(arguments);
+        var rel = args.pop();
         var obj = {
           type: 'console',
           line: args.pop(),
-          values: inspect(args)
+          values: inspect(args),
+          rel: rel
         };
 
         process.send(obj);
@@ -93,28 +104,39 @@
       covLog: function(obj) {
         var cov;
         if ((cov = global[cvVar])) {
-          if (!cvInitial) {
+          if (!cvFiles.length) {
+            cvFiles = Object.keys(cov);
             process.send({ type: 'cov', cov: cov });
-            cvInitial = true;
 
-            process.send({ type: 'end', kind: 'sync' });
-            if (envRepl.test) {
-              asyncEnd.check(50).then(function() {
-                process.send({ type: 'end', kind: 'async' });
+            onTesting();
+          } else if (cvFiles.length) {
+            if (obj) {
+              process.send({ type: 'cov', covAsync: obj });
+            } else {
+              var dynamicCov = {};
+
+              Object.keys(cov).forEach(function(key) {
+                if (!cvFiles.includes(key)) {
+                  dynamicCov[key] = cov[key];
+                  cvFiles.push(key);
+                }
               });
+
+              process.send({ type: 'cov', cov: dynamicCov });
             }
-          } else if (cvInitial && obj) {
-            process.send({ type: 'cov', covAsync: obj });
           }
+        } else {
+          onTesting();
         }
       },
-      cov: function(type, id, index) {
-        if (!cvInitial) return;
+      cov: function(type, id, index, rel) {
+        if (!cvFiles.length || !cvFiles.includes(rel)) return;
 
         this.covLog({
           type: type,
           id: id,
-          index: index
+          index: index,
+          rel: rel
         });
       }
     };

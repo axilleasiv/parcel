@@ -31,7 +31,7 @@ class Bundler extends EventEmitter {
     super();
 
     if (options.custom) {
-      this.entryFiles = this.normalizeEntries(entryFiles, options);
+      this.entryFiles = [options.custom.entryFile];
     } else {
       entryFiles = this.normalizeEntries(entryFiles);
       this.watchedGlobs = entryFiles.filter(entry => isGlob(entry));
@@ -79,11 +79,7 @@ class Bundler extends EventEmitter {
     logger.setOptions(this.options);
   }
 
-  normalizeEntries(entryFiles, options) {
-    if (options && options.custom) {
-      return [options.custom.entryFile];
-    }
-
+  normalizeEntries(entryFiles) {
     // Support passing a single file
     if (entryFiles && !Array.isArray(entryFiles)) {
       entryFiles = [entryFiles];
@@ -242,7 +238,48 @@ class Bundler extends EventEmitter {
     }
   }
 
-  async bundle(contents = null) {
+  async reset(options) {
+    this.entryFiles = [options.custom.entryFile];
+    this.options = this.normalizeOptions(options);
+    this.options.extensions = Object.assign({}, this.parser.extensions);
+    this.options.bundleLoaders = this.bundleLoaders;
+
+    this.farm.init(this.options);
+
+    this.resolver = new Resolver(this.options);
+    // this.parser = new Parser(this.options);
+    // this.packagers = new PackagerRegistry(this.options);
+    this.cache = this.options.cache ? new FSCache(this.options) : null;
+    this.loadedAssets = new Map();
+    this.entryAssets = null;
+    this.bundleHashes = null;
+  }
+
+  onChangedAdd(path) {
+    if (this.loadedAssets.has(path)) {
+      let changedAsset = this.loadedAssets.get(path);
+      this.buildQueue.add(changedAsset, true);
+    }
+  }
+
+  onChanged(toChange, toInclude) {
+    for (let index in toChange) {
+      this.onChangedAdd(toChange[index]);
+    }
+
+    const custom = this.options.custom;
+
+    for (let index in toInclude) {
+      const relPath = toInclude[index];
+
+      if (!custom.included.includes(relPath)) {
+        custom.included.push(relPath);
+        this.onChangedAdd(Path.join(custom.relativeDir, relPath));
+      }
+    }
+  }
+
+  async bundle({code, toChange, toInclude}) {
     // If another bundle is already pending, wait for that one to finish and retry.
     if (this.pending) {
       return new Promise((resolve, reject) => {
@@ -269,7 +306,7 @@ class Bundler extends EventEmitter {
       this.emit('buildStart', this.entryFiles);
 
       if (this.options.custom) {
-        await mem.set(this.options.custom, contents);
+        await mem.set(this.options.custom, code);
       }
 
       // If this is the initial bundle, ensure the output directory exists, and resolve the main asset.
@@ -294,6 +331,15 @@ class Bundler extends EventEmitter {
         }
 
         initialised = true;
+      } else {
+        if (this.options.custom) {
+          const values = this.entryAssets.values();
+          const customEntry = values.next().value;
+
+          this.buildQueue.add(customEntry, true);
+
+          this.onChanged(toChange, toInclude);
+        }
       }
 
       // Build the queued assets.
@@ -358,10 +404,9 @@ class Bundler extends EventEmitter {
         bundleReport(this.mainBundle, this.options.detailedReport);
       }
 
-      this.loadedAssets = new Map();
-      this.entryAssets = null;
-      this.bundleHashes = null;
-
+      // this.loadedAssets = new Map();
+      // this.entryAssets = null;
+      // this.bundleHashes = null;
       this.emit('bundled', this.mainBundle);
       return this.mainBundle;
     } catch (err) {
@@ -465,9 +510,19 @@ class Bundler extends EventEmitter {
     return this.getLoadedAsset(path);
   }
 
-  getLoadedAsset(path) {
+  async getLoadedAsset(path) {
     if (this.loadedAssets.has(path)) {
+      // if (this.options.custom) {
+      //   let asset = this.loadedAssets.get(path);
+      //   // TODO: mainly we do this, because, we don't watch the loaded assets
+      //   // check to push changed asset, from repl to buildqueue in the future
+      //   let processed = await this.cache.read(asset.name);
+      //   if (processed) {
+      //     return asset;
+      //   }
+      // } else {
       return this.loadedAssets.get(path);
+      // }
     }
 
     let asset = this.parser.getAsset(path, this.options);
@@ -585,11 +640,12 @@ class Bundler extends EventEmitter {
       }
     }
 
-    if (this.options.custom && asset.name === this.options.custom.entryFile) {
-      if (this.cache) {
-        this.cache.invalidate(asset.name);
-      }
-    }
+    // TODO:
+    // if (this.options.custom && asset.name === this.options.custom.entryFile) {
+    //   if (this.cache) {
+    //     this.cache.invalidate(asset.name);
+    //   }
+    // }
 
     await this.loadAsset(asset);
   }
@@ -821,7 +877,8 @@ class Bundler extends EventEmitter {
     }
   }
 
-  async onAdd(path) {
+  // custom
+  /* async onAdd(path) {
     path = Path.join(process.cwd(), path);
 
     let asset = this.parser.getAsset(path, this.options);
@@ -874,11 +931,10 @@ class Bundler extends EventEmitter {
 
   middleware() {
     this.bundle();
-    //costom: return Server.middleware(this);
+    return Server.middleware(this);
   }
 
-  //custom
-  /* async serve(port = 1234, https = false, host) {
+  async serve(port = 1234, https = false, host) {
     this.server = await Server.serve(this, port, host, https);
     try {
       await this.bundle();
