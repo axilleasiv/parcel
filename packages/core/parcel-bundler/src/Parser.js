@@ -1,5 +1,5 @@
 const path = require('path');
-const logger = require('@parcel/logger');
+const logger = require('./utils/escapeLogger');
 const RawAsset = require('./assets/RawAsset');
 const GlobAsset = require('./assets/GlobAsset');
 const {isGlob} = require('./utils/glob');
