@@ -1,6 +1,6 @@
 {
   "name": "@achil/parcel-bundler",
-  "version": "1.12.4",
+  "version": "1.12.7",
   "description": "Blazing fast, zero configuration web application bundler",
   "main": "index.js",
   "license": "MIT",
@@ -37,9 +37,7 @@
     "cross-spawn": "^6.0.4",
     "dotenv": "^5.0.0",
     "dotenv-expand": "^5.1.0",
-    "envinfo": "^7.3.1",
     "fast-glob": "^2.2.2",
-    "filesize": "^3.6.0",
     "is-glob": "^4.0.0",
     "is-url": "^1.2.2",
     "js-yaml": "^3.10.0",
@@ -54,7 +52,7 @@
     "resolve": "^1.4.0",
     "semver": "^5.4.1",
     "serialize-to-js": "^1.1.1",
-    "source-map": "0.6.1",
+    "source-map": "0.7.3",
     "v8-compile-cache": "^2.0.0"
   },
   "devDependencies": {

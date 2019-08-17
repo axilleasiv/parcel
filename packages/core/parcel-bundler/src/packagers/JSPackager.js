@@ -153,7 +153,7 @@ class JSPackager extends Packager {
       // this.options.custom.filename === id
       // this.options.custom.included.includes(id)
     ) {
-      wrapped += `\ndebugger;${this.options.custom.log}.covLog();},`;
+      wrapped += `\n${this.options.custom.log}.covLog();},`;
     } else {
       wrapped += '\n},';
     }
@@ -300,9 +300,7 @@ class JSPackager extends Packager {
       this.options.custom.included.includes(this.bundle.entryAsset.id)
     ) {
       await this.write(
-        `;\n} catch (err) {${this.options.custom.log}.error(err);${
-          this.options.custom.log
-        }.covLog();}`
+        `;\n} catch (err) {${this.options.custom.log}.error(err);${this.options.custom.log}.covLog();}`
       );
     }
 

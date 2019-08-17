@@ -16,7 +16,7 @@ const config = require('./utils/config');
 const loadEnv = require('./utils/env');
 const PromiseQueue = require('./utils/PromiseQueue');
 const installPackage = require('./utils/installPackage');
-const bundleReport = require('./utils/bundleReport');
+// custom: const bundleReport = require('./utils/bundleReport');
 const prettifyTime = require('./utils/prettifyTime');
 const getRootDir = require('./utils/getRootDir');
 const {glob, isGlob} = require('./utils/glob');
@@ -401,7 +401,7 @@ class Bundler extends EventEmitter {
         !this.watcher &&
         (this.options.custom && this.options.custom.report)
       ) {
-        bundleReport(this.mainBundle, this.options.detailedReport);
+        //custom: bundleReport(this.mainBundle, this.options.detailedReport);
       }
 
       // this.loadedAssets = new Map();

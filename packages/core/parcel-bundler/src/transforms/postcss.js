@@ -2,12 +2,17 @@ const localRequire = require('../utils/localRequire');
 const loadPlugins = require('../utils/loadPlugins');
 const md5 = require('../utils/md5');
 const postcss = require('postcss');
-const FileSystemLoader = require('css-modules-loader-core/lib/file-system-loader');
+// custom: const FileSystemLoader = require('css-modules-loader-core/lib/file-system-loader');
 // custom: const semver = require('semver');
 const path = require('path');
 const fs = require('@parcel/fs');
 
 module.exports = async function(asset) {
+  //TODO:
+  if (asset.options.custom) {
+    return;
+  }
+
   let config = await getConfig(asset);
   if (!config) {
     return;
