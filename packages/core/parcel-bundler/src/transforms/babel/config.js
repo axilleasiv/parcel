@@ -1,6 +1,7 @@
 const getBabelRc = require('./babelrc');
 const getEnvConfig = require('./env');
 const getJSXConfig = require('./jsx');
+const getReplConfig = require('./repl');
 const getFlowConfig = require('./flow');
 const path = require('path');
 const fs = require('@parcel/fs');
@@ -53,43 +54,6 @@ async function getBabelConfig(asset) {
   mergeConfigs(result, babelrc);
   mergeConfigs(result, envConfig);
 
-  if (asset.options.custom) {
-    const {
-      entryFile,
-      cvVar,
-      cvIncreaseCb,
-      log,
-      included
-    } = asset.options.custom;
-
-    mergeConfigs(result, {
-      internal: true,
-      babelVersion: 7,
-      config: {
-        plugins: [
-          [
-            require('@achil/babel-plugin-istanbul'),
-            {
-              fileName: entryFile,
-              cvVar,
-              cvIncreaseCb,
-              included
-            }
-          ],
-          [
-            require('@achil/babel-plugin-console'),
-            {
-              fileName: entryFile,
-              consoleName: log,
-              included
-            }
-          ],
-          [require('@babel/plugin-proposal-class-properties')]
-        ]
-      }
-    });
-  }
-
   // Add JSX config if it isn't already specified in the babelrc
   let hasReact =
     babelrc &&
@@ -119,6 +83,10 @@ async function getBabelConfig(asset) {
 
   if (!hasFlow) {
     mergeConfigs(result, flowConfig);
+  }
+
+  if (asset.options.custom) {
+    mergeConfigs(result, getReplConfig(asset));
   }
 
   return result;
