@@ -661,7 +661,7 @@ class Bundler extends EventEmitter {
     let processed = this.cache && (await this.cache.read(asset.name));
     let cacheMiss = false;
     if (!processed || asset.shouldInvalidate(processed.cacheData)) {
-      processed = await this.farm.run(asset.name);
+      processed = await this.farm.run(asset.name, mem.get(asset.name));
       cacheMiss = true;
     }
 

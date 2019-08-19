@@ -11,13 +11,15 @@ class Pipeline {
     this.parser = new Parser(options);
   }
 
-  async process(path, isWarmUp) {
+  async process(path, contents, isWarmUp) {
     let options = this.options;
     if (isWarmUp) {
       options = Object.assign({isWarmUp}, options);
     }
 
     let asset = this.parser.getAsset(path, options);
+    asset.contents = contents;
+
     let error = null;
     let generatedMap = {};
     try {
