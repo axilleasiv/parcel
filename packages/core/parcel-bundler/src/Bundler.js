@@ -241,6 +241,7 @@ class Bundler extends EventEmitter {
   async reset(options) {
     this.entryFiles = [options.custom.entryFile];
     this.options = this.normalizeOptions(options);
+    this.options.custom.fs = mem.clear();
     this.options.extensions = Object.assign({}, this.parser.extensions);
     this.options.bundleLoaders = this.bundleLoaders;
 
@@ -279,7 +280,7 @@ class Bundler extends EventEmitter {
     }
   }
 
-  async bundle({code, toChange, toInclude}) {
+  async bundle({file, toChange, toInclude}) {
     // If another bundle is already pending, wait for that one to finish and retry.
     if (this.pending) {
       return new Promise((resolve, reject) => {
@@ -302,12 +303,16 @@ class Bundler extends EventEmitter {
       // Start worker farm, watcher, etc. if needed
       await this.start();
 
+      if (this.options.custom) {
+        if (!this.options.custom.fs) {
+          this.options.custom.fs = mem.fs();
+        }
+
+        mem.set(file.path, file.code);
+      }
+
       // Emit start event, after bundler is initialised
       this.emit('buildStart', this.entryFiles);
-
-      if (this.options.custom) {
-        await mem.set(this.options.custom, code);
-      }
 
       // If this is the initial bundle, ensure the output directory exists, and resolve the main asset.
       if (isInitialBundle) {
@@ -333,10 +338,9 @@ class Bundler extends EventEmitter {
         initialised = true;
       } else {
         if (this.options.custom) {
-          const values = this.entryAssets.values();
-          const customEntry = values.next().value;
+          const fileAsset = this.loadedAssets.get(file.path);
 
-          this.buildQueue.add(customEntry, true);
+          this.buildQueue.add(fileAsset, true);
 
           this.onChanged(toChange, toInclude);
         }
@@ -401,7 +405,7 @@ class Bundler extends EventEmitter {
         !this.watcher &&
         (this.options.custom && this.options.custom.report)
       ) {
-        //custom: bundleReport(this.mainBundle, this.options.detailedReport);
+        // custom: bundleReport(this.mainBundle, this.options.detailedReport);
       }
 
       // this.loadedAssets = new Map();
@@ -512,17 +516,7 @@ class Bundler extends EventEmitter {
 
   async getLoadedAsset(path) {
     if (this.loadedAssets.has(path)) {
-      // if (this.options.custom) {
-      //   let asset = this.loadedAssets.get(path);
-      //   // TODO: mainly we do this, because, we don't watch the loaded assets
-      //   // check to push changed asset, from repl to buildqueue in the future
-      //   let processed = await this.cache.read(asset.name);
-      //   if (processed) {
-      //     return asset;
-      //   }
-      // } else {
       return this.loadedAssets.get(path);
-      // }
     }
 
     let asset = this.parser.getAsset(path, this.options);

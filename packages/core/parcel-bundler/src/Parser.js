@@ -98,6 +98,7 @@ class Parser {
 
   getAsset(filename, options = {}) {
     let Asset = this.findParser(filename);
+    //TODO: ?
     options.parser = this;
     return new Asset(filename, options);
   }

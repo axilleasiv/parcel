@@ -1,19 +1,27 @@
-const fs = require('@parcel/fs');
+let files = {};
 
-exports.set = async (options, content) => {
-  try {
-    await fs.writeFile(options.memFile, content);
-  } catch (err) {
-    return null;
+const memFS = {
+  set(path, contents) {
+    files[path] = contents;
+  },
+
+  get(path) {
+    return files[path];
+  },
+
+  remove(path) {
+    delete files[path];
+  },
+
+  clear() {
+    files = {};
+
+    return files;
+  },
+
+  fs() {
+    return files;
   }
 };
 
-exports.get = async options => {
-  try {
-    const contents = await fs.readFile(options.memFile, 'utf8');
-
-    return contents;
-  } catch (err) {
-    return null;
-  }
-};
+module.exports = memFS;
