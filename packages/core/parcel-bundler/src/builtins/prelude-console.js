@@ -51,6 +51,8 @@
     var inspect = require('util').inspect;
     var cvVar = envRepl.cvVar;
     var cvFiles = [];
+    var logs = [];
+    var syncEnd = false;
     var asyncEnd;
 
     if (envRepl.test) {
@@ -76,7 +78,14 @@
       }
     }
 
-    function onTesting() {
+    function syncedLogs() {
+      process.send({ type: 'console', rels: logs });
+      logs = [];
+    }
+
+    function onEnd() {
+      syncedLogs();
+      syncEnd = true;
       process.send({ type: 'end', kind: 'sync' });
       if (envRepl.test) {
         asyncEnd.check(50).then(function() {
@@ -96,7 +105,11 @@
           rel: rel
         };
 
-        process.send(obj);
+        if (!syncEnd) {
+          logs.push(obj);
+        } else {
+          process.send(obj);
+        }
       },
       error: function(error) {
         process.send({ type: 'error', error: errorToJson(error) });
@@ -108,7 +121,7 @@
             cvFiles = Object.keys(cov);
             process.send({ type: 'cov', cov: cov });
 
-            onTesting();
+            onEnd();
           } else if (cvFiles.length) {
             if (obj) {
               process.send({ type: 'cov', covAsync: obj });
@@ -126,7 +139,7 @@
             }
           }
         } else {
-          onTesting();
+          onEnd();
         }
       },
       cov: function(type, id, index, rel) {

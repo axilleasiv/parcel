@@ -263,11 +263,12 @@ class Bundler extends EventEmitter {
     }
   }
 
-  onChanged(toChange, toInclude) {
+  onChanged(toChange, toInclude, filePath) {
+    this.onChangedAdd(filePath);
+
     for (let index in toChange) {
       this.onChangedAdd(toChange[index]);
     }
-
     const custom = this.options.custom;
 
     for (let index in toInclude) {
@@ -275,7 +276,12 @@ class Bundler extends EventEmitter {
 
       if (!custom.included.includes(relPath)) {
         custom.included.push(relPath);
-        this.onChangedAdd(Path.join(custom.relativeDir, relPath));
+
+        const absPath = Path.join(custom.relativeDir, relPath);
+
+        if (absPath !== filePath) {
+          this.onChangedAdd(absPath);
+        }
       }
     }
   }
@@ -338,11 +344,9 @@ class Bundler extends EventEmitter {
         initialised = true;
       } else {
         if (this.options.custom) {
-          const fileAsset = this.loadedAssets.get(file.path);
+          // const fileAsset = this.loadedAssets.get(file.path);
 
-          this.buildQueue.add(fileAsset, true);
-
-          this.onChanged(toChange, toInclude);
+          this.onChanged(toChange, toInclude, file.path);
         }
       }
 
@@ -661,7 +665,12 @@ class Bundler extends EventEmitter {
     let processed = this.cache && (await this.cache.read(asset.name));
     let cacheMiss = false;
     if (!processed || asset.shouldInvalidate(processed.cacheData)) {
-      processed = await this.farm.run(asset.name, mem.get(asset.name));
+      processed = await this.farm.run(asset.name, {
+        contents: mem.get(asset.name),
+        props: {
+          included: this.options.custom.included
+        }
+      });
       cacheMiss = true;
     }
 
