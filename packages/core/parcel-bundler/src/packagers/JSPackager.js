@@ -26,7 +26,9 @@ class JSPackager extends Packager {
     if (this.options.custom && !this.bundle.parentBundle.type) {
       let preludeConsoleCode = preludeConsole.minified;
       let preludeCode = prelude.minified;
-      await this.write(preludeConsoleCode + ' ;try {\n');
+      await this.write(
+        (this.options.custom.vm.context ? '' : preludeConsoleCode) + ' ;try {\n'
+      );
       await this.write(preludeCode + '({');
       const preludeLines =
         lineCounter(preludeCode) + lineCounter(preludeConsoleCode);
@@ -300,7 +302,9 @@ class JSPackager extends Packager {
       this.options.custom.included.includes(this.bundle.entryAsset.id)
     ) {
       await this.write(
-        `;\n} catch (err) {${this.options.custom.log}.error(err);${this.options.custom.log}.covLog();}`
+        `;\n} catch (err) {${this.options.custom.log}.error(err);${
+          this.options.custom.log
+        }.covLog();}`
       );
     }
 

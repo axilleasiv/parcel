@@ -47,9 +47,8 @@
     process.exit();
   });
 
-  global['$console' + envRepl.cvVar] = (function() {
+  global[envRepl.cvVar] = (function() {
     var inspect = require('util').inspect;
-    var cvVar = envRepl.cvVar;
     var cvFiles = [];
     var logs = [];
     var syncEnd = false;
@@ -95,6 +94,7 @@
     }
 
     return {
+      data: {},
       log: function() {
         var args = Array.prototype.slice.call(arguments);
         var rel = args.pop();
@@ -116,10 +116,14 @@
       },
       covLog: function(obj) {
         var cov;
-        if ((cov = global[cvVar])) {
+
+        if ((cov = this.data)) {
           if (!cvFiles.length) {
             cvFiles = Object.keys(cov);
-            process.send({ type: 'cov', cov: cov });
+
+            if (cvFiles.length) {
+              process.send({ type: 'cov', cov: cov });
+            }
 
             onEnd();
           } else if (cvFiles.length) {
