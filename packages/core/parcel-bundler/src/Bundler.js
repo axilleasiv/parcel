@@ -266,14 +266,15 @@ class Bundler extends EventEmitter {
   onChanged(toChange, toInclude, filePath) {
     this.onChangedAdd(filePath);
 
-    for (let index in toChange) {
-      this.onChangedAdd(toChange[index]);
+    for (let absPath of toChange) {
+      if (absPath !== filePath) {
+        mem.remove(absPath);
+        this.onChangedAdd(absPath);
+      }
     }
     const custom = this.options.custom;
 
-    for (let index in toInclude) {
-      const relPath = toInclude[index];
-
+    for (let relPath of toInclude) {
       if (!custom.included.includes(relPath)) {
         custom.included.push(relPath);
 
@@ -412,9 +413,6 @@ class Bundler extends EventEmitter {
         // custom: bundleReport(this.mainBundle, this.options.detailedReport);
       }
 
-      // this.loadedAssets = new Map();
-      // this.entryAssets = null;
-      // this.bundleHashes = null;
       this.emit('bundled', this.mainBundle);
       return this.mainBundle;
     } catch (err) {
@@ -637,13 +635,6 @@ class Bundler extends EventEmitter {
         this.cache.invalidate(asset.name);
       }
     }
-
-    // TODO:
-    // if (this.options.custom && asset.name === this.options.custom.entryFile) {
-    //   if (this.cache) {
-    //     this.cache.invalidate(asset.name);
-    //   }
-    // }
 
     await this.loadAsset(asset);
   }

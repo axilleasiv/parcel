@@ -55,19 +55,7 @@ class Asset {
 
   async loadIfNeeded() {
     if (this.contents == null) {
-      if (
-        this.options.custom &&
-        this.options.custom.included.includes(this.id)
-      ) {
-        let contents = this.options.custom.fs[this.name];
-        if (contents) {
-          this.contents = contents;
-        } else {
-          this.contents = await this.load();
-        }
-      } else {
-        this.contents = await this.load();
-      }
+      this.contents = await this.load();
     }
   }
 
