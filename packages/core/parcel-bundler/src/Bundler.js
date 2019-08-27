@@ -266,22 +266,27 @@ class Bundler extends EventEmitter {
   onChanged(toChange, toInclude, filePath) {
     this.onChangedAdd(filePath);
 
-    for (let absPath of toChange) {
-      if (absPath !== filePath) {
-        mem.remove(absPath);
-        this.onChangedAdd(absPath);
+    if (toChange) {
+      for (let absPath of toChange) {
+        if (absPath !== filePath) {
+          mem.remove(absPath);
+          this.onChangedAdd(absPath);
+        }
       }
     }
-    const custom = this.options.custom;
 
-    for (let relPath of toInclude) {
-      if (!custom.included.includes(relPath)) {
-        custom.included.push(relPath);
+    if (toInclude) {
+      const custom = this.options.custom;
 
-        const absPath = Path.join(custom.relativeDir, relPath);
+      for (let relPath of toInclude) {
+        if (!custom.included.includes(relPath)) {
+          custom.included.push(relPath);
 
-        if (absPath !== filePath) {
-          this.onChangedAdd(absPath);
+          const absPath = Path.join(custom.relativeDir, relPath);
+
+          if (absPath !== filePath) {
+            this.onChangedAdd(absPath);
+          }
         }
       }
     }

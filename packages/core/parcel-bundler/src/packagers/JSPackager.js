@@ -27,7 +27,8 @@ class JSPackager extends Packager {
       let preludeConsoleCode = preludeConsole.minified;
       let preludeCode = prelude.minified;
       await this.write(
-        (this.options.custom.vm.context ? '' : preludeConsoleCode) + ' ;try {\n'
+        (this.options.custom.vm.context === 'VM' ? '' : preludeConsoleCode) +
+          ' ;try {\n'
       );
       await this.write(preludeCode + '({');
       const preludeLines =
