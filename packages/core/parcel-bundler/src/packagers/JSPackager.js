@@ -24,12 +24,12 @@ class JSPackager extends Packager {
 
     // only on the root bundle
     if (this.options.custom && !this.bundle.parentBundle.type) {
-      let preludeConsoleCode = preludeConsole.minified;
+      let preludeConsoleCode =
+        this.options.custom.vm.context === 'VM' ? '' : preludeConsole.minified;
+      preludeConsoleCode =
+        preludeConsoleCode + ' ;try {Error.stackTraceLimit = 50;\n';
       let preludeCode = prelude.minified;
-      await this.write(
-        (this.options.custom.vm.context === 'VM' ? '' : preludeConsoleCode) +
-          ' ;try {\n'
-      );
+      await this.write(preludeConsoleCode);
       await this.write(preludeCode + '({');
       const preludeLines =
         lineCounter(preludeCode) + lineCounter(preludeConsoleCode);
