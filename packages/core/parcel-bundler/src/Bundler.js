@@ -256,15 +256,24 @@ class Bundler extends EventEmitter {
     this.bundleHashes = null;
   }
 
-  onChangedAdd(path) {
+  onChangedAdd(path, toVal) {
     if (this.loadedAssets.has(path)) {
       let changedAsset = this.loadedAssets.get(path);
+
+      if (toVal) {
+        changedAsset.options.custom.toVal = toVal;
+      } else {
+        if (changedAsset.options.custom.toVal) {
+          changedAsset.options.custom.toVal = null;
+        }
+      }
+
       this.buildQueue.add(changedAsset, true);
     }
   }
 
-  onChanged(toChange, toInclude, filePath) {
-    this.onChangedAdd(filePath);
+  onChanged(toChange, toInclude, filePath, toVal) {
+    this.onChangedAdd(filePath, toVal);
 
     if (toChange) {
       for (let absPath of toChange) {
@@ -292,7 +301,7 @@ class Bundler extends EventEmitter {
     }
   }
 
-  async bundle({file, toChange, toInclude}) {
+  async bundle({file, toChange, toInclude, toVal}) {
     // If another bundle is already pending, wait for that one to finish and retry.
     if (this.pending) {
       return new Promise((resolve, reject) => {
@@ -352,7 +361,7 @@ class Bundler extends EventEmitter {
         if (this.options.custom) {
           // const fileAsset = this.loadedAssets.get(file.path);
 
-          this.onChanged(toChange, toInclude, file.path);
+          this.onChanged(toChange, toInclude, file.path, toVal);
         }
       }
 
@@ -664,7 +673,8 @@ class Bundler extends EventEmitter {
       processed = await this.farm.run(asset.name, {
         contents: mem.get(asset.name),
         props: {
-          included: this.options.custom.included
+          included: this.options.custom.included,
+          toVal: asset.options.custom.toVal
         }
       });
       cacheMiss = true;

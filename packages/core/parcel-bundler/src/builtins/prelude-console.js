@@ -101,9 +101,19 @@
         var obj = {
           type: 'console',
           line: args.pop(),
-          values: inspect(args),
+          values: [],
           rel: rel
         };
+
+        args.forEach(arg => {
+          obj.values.push({
+            type: typeof arg,
+            text: inspect(arg, {
+              // depth: null,
+              // showHidden:true
+            })
+          });
+        });
 
         if (!syncEnd) {
           logs.push(obj);
