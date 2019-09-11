@@ -79,7 +79,8 @@ class Pipeline {
         subAsset.dependencies = asset.dependencies;
         subAsset.cacheData = Object.assign(asset.cacheData, subAsset.cacheData);
 
-        let processed = await this.processAsset(subAsset);
+        let {generated: processed, ast} = await this.processAsset(subAsset);
+        asset.ast = ast;
         if (rendition.meta) {
           for (let res of processed) {
             res.meta = rendition.meta;

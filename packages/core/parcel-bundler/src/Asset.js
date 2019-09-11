@@ -10,6 +10,9 @@ const logger = require('./utils/escapeLogger');
 const Resolver = require('./Resolver');
 const objectHash = require('./utils/objectHash');
 const t = require('babel-types');
+const generate = require('@babel/generator').default;
+const babel7 = require('./transforms/babel/babel7');
+const {evaluation} = require('@achil/babel-plugin-console');
 
 /**
  * An Asset represents a file in the dependency tree. Assets can have multiple
@@ -199,6 +202,55 @@ class Asset {
     };
   }
 
+  async evaluation() {
+    const rel = this.id;
+    let {log, included, toVal} = this.options.custom;
+
+    // unneeded check
+    if (included.includes(rel)) {
+      await babel7(this, {
+        internal: true,
+        config: {
+          plugins: [
+            [
+              evaluation,
+              {
+                consoleName: log,
+                toVal,
+                rel
+              }
+            ]
+          ]
+        }
+      });
+    }
+  }
+
+  async generateEval() {
+    let code;
+    let opts = {
+      sourceMaps: null,
+      sourceFileName: this.relativeName,
+      comments: !this.options.custom,
+      retainLines: true
+    };
+
+    let generated = generate(this.ast, opts, this.contents);
+    code = generated.code;
+
+    if (this.globals && this.globals.size > 0) {
+      code = Array.from(this.globals.values()).join('\n') + '\n' + code;
+    }
+
+    return [
+      {
+        type: 'js',
+        value: code,
+        map: null
+      }
+    ];
+  }
+
   async process() {
     // Generate the id for this asset, unless it has already been set.
     // We do this here rather than in the constructor to avoid unnecessary work in the main process.
@@ -213,7 +265,7 @@ class Asset {
 
     if (this.options.custom && this.options.custom.toVal) {
       await this.evaluation();
-      this.generated = await this.generate();
+      this.generated = await this.generateEval();
     } else {
       if (!this.generated) {
         await this.loadIfNeeded();

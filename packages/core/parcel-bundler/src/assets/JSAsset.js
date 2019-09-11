@@ -24,7 +24,6 @@ const GLOBAL_RE = /\b(?:process|__dirname|__filename|global|Buffer|define)\b/;
 const FS_RE = /\breadFileSync\b/;
 const SW_RE = /\bnavigator\s*\.\s*serviceWorker\s*\.\s*register\s*\(/;
 const WORKER_RE = /\bnew\s*(?:Shared)?Worker\s*\(/;
-const {evaluation} = require('@achil/babel-plugin-console');
 
 class JSAsset extends Asset {
   constructor(name, options) {
@@ -94,30 +93,6 @@ class JSAsset extends Asset {
       await this.parseIfNeeded();
       this.traverse(processVisitor);
       this.isAstDirty = true;
-    }
-  }
-
-  async evaluation() {
-    const rel = this.id;
-    let {log, included, toVal} = this.options.custom;
-
-    // unneeded check
-    if (included.includes(rel)) {
-      await babel7(this, {
-        internal: true,
-        config: {
-          plugins: [
-            [
-              evaluation,
-              {
-                consoleName: log,
-                toVal,
-                rel
-              }
-            ]
-          ]
-        }
-      });
     }
   }
 
