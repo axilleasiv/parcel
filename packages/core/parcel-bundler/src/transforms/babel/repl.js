@@ -1,17 +1,12 @@
+const {logger} = require('@achil/babel-plugin-console');
+
 const getReplConfig = asset => {
   const rel = asset.id;
-  const {
-    cvVar,
-    cvIncreaseCb,
-    log,
-    included,
-    coverage,
-    toVal
-  } = asset.options.custom;
+  let {cvVar, cvIncreaseCb, log, included, coverage} = asset.options.custom;
 
   const plugins = [[require('@babel/plugin-proposal-class-properties')]];
 
-  if (coverage && included.includes(rel) && !toVal) {
+  if (coverage && included.includes(rel)) {
     plugins.push([
       require('@achil/babel-plugin-istanbul'),
       {
@@ -24,10 +19,9 @@ const getReplConfig = asset => {
 
   if (included.includes(rel)) {
     plugins.push([
-      require('@achil/babel-plugin-console'),
+      logger,
       {
         consoleName: log,
-        toVal,
         rel
       }
     ]);

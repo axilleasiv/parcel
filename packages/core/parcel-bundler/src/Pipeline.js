@@ -19,14 +19,16 @@ class Pipeline {
 
     let asset = this.parser.getAsset(path, options);
     asset.contents = custom.contents;
+    asset.ast = custom.ast;
     for (let prop in custom.props) {
       asset.options.custom[prop] = custom.props[prop];
     }
 
     let error = null;
     let generatedMap = {};
+    let ast, generated;
     try {
-      let generated = await this.processAsset(asset);
+      ({generated, ast} = await this.processAsset(asset));
       for (let rendition of generated) {
         generatedMap[rendition.type] = rendition.value;
       }
@@ -42,7 +44,8 @@ class Pipeline {
       sourceMaps: asset.sourceMaps,
       error: error,
       hash: asset.hash,
-      cacheData: asset.cacheData
+      cacheData: asset.cacheData,
+      ast
     };
   }
 
@@ -113,7 +116,7 @@ class Pipeline {
     asset.generated = generated;
     asset.hash = await asset.generateHash();
 
-    return generated;
+    return {generated, ast: asset.ast};
   }
 
   *iterateRenditions(asset) {

@@ -267,8 +267,7 @@ class Bundler extends EventEmitter {
           changedAsset.options.custom.toVal = null;
         }
       }
-
-      this.buildQueue.add(changedAsset, true);
+      this.buildQueue.add(changedAsset, !toVal, toVal);
     }
   }
 
@@ -278,8 +277,10 @@ class Bundler extends EventEmitter {
     if (toChange) {
       for (let absPath of toChange) {
         if (absPath !== filePath) {
-          mem.remove(absPath);
-          this.onChangedAdd(absPath);
+          if (!toVal) {
+            mem.remove(absPath);
+          }
+          this.onChangedAdd(absPath, toVal);
         }
       }
     }
@@ -294,7 +295,7 @@ class Bundler extends EventEmitter {
           const absPath = Path.join(custom.relativeDir, relPath);
 
           if (absPath !== filePath) {
-            this.onChangedAdd(absPath);
+            this.onChangedAdd(absPath, toVal);
           }
         }
       }
@@ -427,7 +428,22 @@ class Bundler extends EventEmitter {
         // custom: bundleReport(this.mainBundle, this.options.detailedReport);
       }
 
-      this.emit('bundled', this.mainBundle);
+      let evaluation = null;
+      if (changedAssets.length) {
+        for (const asset of changedAssets) {
+          if (asset.options.custom.toVal) {
+            asset.options.custom.toVal = null;
+            evaluation = true;
+          }
+        }
+      }
+
+      if (evaluation) {
+        this.emit('evaluation', true);
+      } else {
+        this.emit('bundled', this.mainBundle);
+      }
+
       return this.mainBundle;
     } catch (err) {
       this.error = err;
@@ -536,7 +552,14 @@ class Bundler extends EventEmitter {
     }
 
     let asset = this.parser.getAsset(path, this.options);
-    this.loadedAssets.set(path, asset);
+
+    if (this.options.custom) {
+      if (!asset.options.custom.toVal) {
+        this.loadedAssets.set(path, asset);
+      }
+    } else {
+      this.loadedAssets.set(path, asset);
+    }
 
     this.watch(path, asset);
     return asset;
@@ -642,12 +665,16 @@ class Bundler extends EventEmitter {
     throw err;
   }
 
-  async processAsset(asset, isRebuild) {
+  async processAsset(asset, isRebuild, toVal) {
     if (isRebuild) {
       asset.invalidate();
       if (this.cache) {
         this.cache.invalidate(asset.name);
       }
+    }
+
+    if (toVal) {
+      asset.resetOnVal();
     }
 
     await this.loadAsset(asset);
@@ -667,17 +694,31 @@ class Bundler extends EventEmitter {
 
     // First try the cache, otherwise load and compile in the background
     asset.startTime = Date.now();
-    let processed = this.cache && (await this.cache.read(asset.name));
+    let processed =
+      !asset.options.custom.toVal &&
+      this.cache &&
+      (await this.cache.read(asset.name));
     let cacheMiss = false;
     if (!processed || asset.shouldInvalidate(processed.cacheData)) {
+      const toVal = asset.options.custom.toVal;
+
       processed = await this.farm.run(asset.name, {
         contents: mem.get(asset.name),
+        ast: toVal ? asset.ast : undefined,
         props: {
           included: this.options.custom.included,
-          toVal: asset.options.custom.toVal
+          toVal
+        },
+        options: {
+          sourceMaps: !toVal
         }
       });
       cacheMiss = true;
+    }
+
+    // TODO:
+    if (this.options.custom) {
+      asset.ast = processed.ast;
     }
 
     asset.endTime = Date.now();
@@ -739,7 +780,8 @@ class Bundler extends EventEmitter {
     if (
       this.cache &&
       cacheMiss &&
-      this.options.custom.entryFile !== asset.name
+      this.options.custom.entryFile !== asset.name && // TODO: why?
+      asset.options.custom.toVal
     ) {
       this.cache.write(asset.name, processed);
     }

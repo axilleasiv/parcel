@@ -211,12 +211,17 @@ class Asset {
           : this.relativeName;
     }
 
-    if (!this.generated) {
-      await this.loadIfNeeded();
-      await this.pretransform();
-      await this.getDependencies();
-      await this.transform();
+    if (this.options.custom && this.options.custom.toVal) {
+      await this.evaluation();
       this.generated = await this.generate();
+    } else {
+      if (!this.generated) {
+        await this.loadIfNeeded();
+        await this.pretransform();
+        await this.getDependencies();
+        await this.transform();
+        this.generated = await this.generate();
+      }
     }
 
     return this.generated;
@@ -228,6 +233,10 @@ class Asset {
 
   generateHash() {
     return objectHash(this.generated);
+  }
+
+  resetOnVal() {
+    this.processed = false;
   }
 
   invalidate() {
