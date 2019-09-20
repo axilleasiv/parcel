@@ -10,11 +10,6 @@ const prelude = getExisting(
   path.join(__dirname, '../builtins/prelude.js')
 );
 
-const preludeConsole = getExisting(
-  path.join(__dirname, '../builtins/prelude-console.min.js'),
-  path.join(__dirname, '../builtins/prelude-console.js')
-);
-
 class JSPackager extends Packager {
   async start() {
     this.first = true;
@@ -24,15 +19,10 @@ class JSPackager extends Packager {
 
     // only on the root bundle
     if (this.options.custom && !this.bundle.parentBundle.type) {
-      let preludeConsoleCode =
-        this.options.custom.vm.context === 'VM' ? '' : preludeConsole.minified;
       let preludeCode = prelude.minified;
-      await this.write(
-        preludeConsoleCode + ' ;try {Error.stackTraceLimit = 50;\n'
-      );
+      await this.write(` try {${this.options.custom.log}.init();\n`);
       await this.write(preludeCode + '({');
-      const preludeLines =
-        lineCounter(preludeCode) + lineCounter(preludeConsoleCode);
+      const preludeLines = lineCounter(preludeCode);
       this.preludeLines = preludeLines;
       this.lineOffset = preludeLines;
     } else {
@@ -156,7 +146,7 @@ class JSPackager extends Packager {
       // this.options.custom.filename === id
       // this.options.custom.included.includes(id)
     ) {
-      wrapped += `\n${this.options.custom.log}.covLog();},`;
+      wrapped += `\n${this.options.custom.log}.end();},`;
     } else {
       wrapped += '\n},';
     }
@@ -242,7 +232,7 @@ class JSPackager extends Packager {
             this.bundle.entryAsset.id
           )});}).catch(function(e){${this.options.custom.log}.error(e);${
             this.options.custom.log
-          }.covLog();})`;
+          }.end();})`;
         } else {
           loads += `.then(function(){require(${JSON.stringify(
             this.bundle.entryAsset.id
@@ -305,7 +295,7 @@ class JSPackager extends Packager {
       await this.write(
         `;\n} catch (err) {${this.options.custom.log}.error(err);${
           this.options.custom.log
-        }.covLog();}`
+        }.end();}`
       );
     }
 
