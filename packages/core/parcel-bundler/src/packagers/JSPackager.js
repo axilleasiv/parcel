@@ -22,7 +22,7 @@ class JSPackager extends Packager {
       let preludeCode = prelude.minified;
       await this.write(` try {${this.options.custom.log}.init();\n`);
       await this.write(preludeCode + '({');
-      const preludeLines = lineCounter(preludeCode);
+      const preludeLines = lineCounter(preludeCode) + 1;
       this.preludeLines = preludeLines;
       this.lineOffset = preludeLines;
     } else {
