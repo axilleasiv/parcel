@@ -58,6 +58,7 @@ class Pipeline {
 
     let inputType = path.extname(asset.name).slice(1);
     let generated = [];
+    let astJS = null;
     for (let rendition of this.iterateRenditions(asset)) {
       let {type, value} = rendition;
       if (typeof value !== 'string' || rendition.final) {
@@ -80,7 +81,18 @@ class Pipeline {
         subAsset.cacheData = Object.assign(asset.cacheData, subAsset.cacheData);
 
         let {generated: processed, ast} = await this.processAsset(subAsset);
-        asset.ast = ast;
+
+        if (
+          (asset.constructor.name === 'TypeScriptAsset' &&
+            subAsset.constructor.name === 'JSAsset') ||
+          (asset.constructor.name === 'CoffeeScriptAsset' &&
+            subAsset.constructor.name === 'JSAsset') ||
+          (asset.constructor.name === 'VueAsset' &&
+            subAsset.constructor.name === 'JSAsset')
+        ) {
+          astJS = ast;
+        }
+
         if (rendition.meta) {
           for (let res of processed) {
             res.meta = rendition.meta;
@@ -96,7 +108,9 @@ class Pipeline {
 
     // Post process. This allows assets a chance to modify the output produced by sub-asset types.
     try {
-      generated = await asset.postProcess(generated);
+      if (!asset.options.custom.toVal) {
+        generated = await asset.postProcess(generated);
+      }
     } catch (err) {
       throw asset.generateErrorMessage(err);
     }
@@ -117,7 +131,7 @@ class Pipeline {
     asset.generated = generated;
     asset.hash = await asset.generateHash();
 
-    return {generated, ast: asset.ast};
+    return {generated, ast: astJS || asset.ast};
   }
 
   *iterateRenditions(asset) {
