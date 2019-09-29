@@ -311,6 +311,13 @@ class Bundle {
       column: 0
     });
   }
+
+  getGenerated(originalLine) {
+    return this.sourceMapFinal.generatedPositionFor({
+      line: originalLine,
+      column: 0
+    });
+  }
 }
 
 module.exports = Bundle;

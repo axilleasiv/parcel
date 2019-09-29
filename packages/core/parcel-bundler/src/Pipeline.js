@@ -50,10 +50,18 @@ class Pipeline {
   }
 
   async processAsset(asset) {
+    let valGenerated;
     try {
-      await asset.process();
+      valGenerated = await asset.process();
     } catch (err) {
       throw asset.generateErrorMessage(err);
+    }
+
+    // early return during evaluation
+    if (asset.options.custom.toVal) {
+      asset.generated = valGenerated;
+      asset.hash = await asset.generateHash();
+      return {generated: valGenerated, ast: asset.ast};
     }
 
     let inputType = path.extname(asset.name).slice(1);
@@ -109,6 +117,7 @@ class Pipeline {
     // Post process. This allows assets a chance to modify the output produced by sub-asset types.
     try {
       if (!asset.options.custom.toVal) {
+        // TODO: remove this check, early return now
         generated = await asset.postProcess(generated);
       }
     } catch (err) {

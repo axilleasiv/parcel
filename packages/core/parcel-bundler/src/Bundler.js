@@ -432,14 +432,14 @@ class Bundler extends EventEmitter {
       if (changedAssets.length) {
         for (const asset of changedAssets) {
           if (asset.options.custom.toVal) {
+            evaluation = asset.options.custom.toVal.type;
             asset.options.custom.toVal = null;
-            evaluation = true;
           }
         }
       }
 
       if (evaluation) {
-        this.emit('evaluation', true);
+        this.emit('evaluation', evaluation);
       } else {
         this.emit('bundled', this.mainBundle);
       }
@@ -781,7 +781,7 @@ class Bundler extends EventEmitter {
       this.cache &&
       cacheMiss &&
       this.options.custom.entryFile !== asset.name && // TODO: why?
-      asset.options.custom.toVal
+      !asset.options.custom.toVal
     ) {
       this.cache.write(asset.name, processed);
     }

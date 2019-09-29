@@ -12,7 +12,7 @@ const objectHash = require('./utils/objectHash');
 const t = require('babel-types');
 const generate = require('@babel/generator').default;
 const babel7 = require('./transforms/babel/babel7');
-const {evaluation} = require('@achil/babel-plugin-console');
+const {evaluation, evaluationLog} = require('@achil/babel-plugin-console');
 
 /**
  * An Asset represents a file in the dependency tree. Assets can have multiple
@@ -213,7 +213,7 @@ class Asset {
         config: {
           plugins: [
             [
-              evaluation,
+              toVal.type === 'log' ? evaluationLog : evaluation,
               {
                 consoleName: log,
                 toVal,
