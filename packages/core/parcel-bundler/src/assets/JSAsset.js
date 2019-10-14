@@ -16,6 +16,7 @@ const SourceMap = require('../SourceMap');
 const hoist = require('../scope-hoisting/hoist');
 const loadSourceMap = require('../utils/loadSourceMap');
 const isAccessedVarChanged = require('../utils/isAccessedVarChanged');
+const {referencesLog} = require('@achil/babel-plugin-console');
 
 const IMPORT_RE = /\b(?:import\b|export\b|require\s*\()/;
 const ENV_RE = /\b(?:process\.env)\b/;
@@ -124,17 +125,31 @@ class JSAsset extends Asset {
       this.isAstDirty = true;
     } else {
       if (this.isES6Module) {
+        const plugins = [
+          [
+            require('@babel/plugin-transform-modules-commonjs'),
+            {
+              strictMode: false
+            }
+          ]
+        ];
+
+        let {log, included} = this.options.custom;
+        const rel = this.id;
+        if (included.includes(rel)) {
+          plugins.push([
+            referencesLog,
+            {
+              consoleName: log,
+              rel
+            }
+          ]);
+        }
+
         await babel7(this, {
           internal: true,
           config: {
-            plugins: [
-              [
-                require('@babel/plugin-transform-modules-commonjs'),
-                {
-                  strictMode: false
-                }
-              ]
-            ]
+            plugins
           }
         });
       }
