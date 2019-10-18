@@ -204,7 +204,8 @@ class Asset {
 
   async evaluation() {
     const rel = this.id;
-    let {log, included, toVal} = this.options.custom;
+    let {log, included, toVal, doc} = this.options.custom;
+    doc.rel = rel;
 
     // unneeded check
     if (included.includes(rel)) {
@@ -217,7 +218,7 @@ class Asset {
               {
                 consoleName: log,
                 toVal,
-                rel
+                doc
               }
             ]
           ]

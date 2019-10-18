@@ -302,7 +302,7 @@ class Bundler extends EventEmitter {
     }
   }
 
-  async bundle({file, toChange, toInclude, toVal}) {
+  async bundle({file, toChange, toInclude, toVal, doc}) {
     // If another bundle is already pending, wait for that one to finish and retry.
     if (this.pending) {
       return new Promise((resolve, reject) => {
@@ -326,6 +326,8 @@ class Bundler extends EventEmitter {
       await this.start();
 
       if (this.options.custom) {
+        this.options.custom.doc = doc;
+
         if (!this.options.custom.fs) {
           this.options.custom.fs = mem.fs();
         }
@@ -707,6 +709,7 @@ class Bundler extends EventEmitter {
         ast: toVal ? asset.ast : undefined,
         props: {
           included: this.options.custom.included,
+          doc: this.options.custom.doc,
           toVal
         },
         options: {

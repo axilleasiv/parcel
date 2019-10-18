@@ -2,7 +2,14 @@ const {logger} = require('@achil/babel-plugin-console');
 
 const getReplConfig = asset => {
   const rel = asset.id;
-  let {cvVar, cvIncreaseCb, log, included, coverage} = asset.options.custom;
+  let {
+    cvVar,
+    cvIncreaseCb,
+    log,
+    included,
+    coverage,
+    doc
+  } = asset.options.custom;
 
   const plugins = [[require('@babel/plugin-proposal-class-properties')]];
 
@@ -18,11 +25,12 @@ const getReplConfig = asset => {
   }
 
   if (included.includes(rel)) {
+    doc.rel = rel;
     plugins.push([
       logger,
       {
         consoleName: log,
-        rel
+        doc
       }
     ]);
   }
