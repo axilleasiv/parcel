@@ -25,12 +25,16 @@ const getReplConfig = asset => {
   }
 
   if (included.includes(rel)) {
-    doc.rel = rel;
     plugins.push([
       logger,
       {
         consoleName: log,
-        doc
+        doc: {
+          ...doc,
+          ...{
+            rel
+          }
+        }
       }
     ]);
   }

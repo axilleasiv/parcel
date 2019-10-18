@@ -137,12 +137,16 @@ class JSAsset extends Asset {
         let {log, included, doc} = this.options.custom;
         const rel = this.id;
         if (included.includes(rel)) {
-          doc.rel = rel;
           plugins.push([
             referencesLog,
             {
               consoleName: log,
-              doc
+              doc: {
+                ...doc,
+                ...{
+                  rel
+                }
+              }
             }
           ]);
         }
