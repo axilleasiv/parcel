@@ -1,6 +1,6 @@
 {
   "name": "@achil/parcel-bundler",
-  "version": "1.12.24",
+  "version": "1.12.25",
   "description": "Blazing fast, zero configuration web application bundler",
   "main": "index.js",
   "license": "MIT",
@@ -15,7 +15,7 @@
     "index.js"
   ],
   "dependencies": {
-    "@achil/workers": "^1.11.0",
+    "@achil/workers": "^1.11.1",
     "@babel/code-frame": "^7.0.0",
     "@babel/core": "^7.4.4",
     "@babel/generator": "^7.4.4",
