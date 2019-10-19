@@ -271,16 +271,20 @@ class Bundler extends EventEmitter {
     }
   }
 
-  onChanged(toChange, toInclude, filePath, toVal) {
-    this.onChangedAdd(filePath, toVal);
+  onChanged(toChange, toInclude, file, toVal) {
+    let filePath;
+    if (file) {
+      filePath = file.path;
+      this.onChangedAdd(filePath, toVal);
+    }
 
     if (toChange) {
-      for (let absPath of toChange) {
-        if (absPath !== filePath) {
-          if (!toVal) {
-            mem.remove(absPath);
+      for (let {path, keep} of toChange) {
+        if (path !== filePath) {
+          if (!keep) {
+            mem.remove(path);
           }
-          this.onChangedAdd(absPath, toVal);
+          this.onChangedAdd(path, toVal);
         }
       }
     }
@@ -332,7 +336,9 @@ class Bundler extends EventEmitter {
           this.options.custom.fs = mem.fs();
         }
 
-        mem.set(file.path, file.code);
+        if (file) {
+          mem.set(file.path, file.code);
+        }
       }
 
       // Emit start event, after bundler is initialised
@@ -364,7 +370,7 @@ class Bundler extends EventEmitter {
         if (this.options.custom) {
           // const fileAsset = this.loadedAssets.get(file.path);
 
-          this.onChanged(toChange, toInclude, file.path, toVal);
+          this.onChanged(toChange, toInclude, file, toVal);
         }
       }
 
