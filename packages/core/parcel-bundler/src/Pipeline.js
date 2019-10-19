@@ -21,7 +21,7 @@ class Pipeline {
     asset.contents = custom.contents;
     asset.ast = custom.ast;
     for (let prop in custom.props) {
-      asset.options.custom[prop] = custom.props[prop];
+      asset.options.vs[prop] = custom.props[prop];
     }
 
     let error = null;
@@ -58,7 +58,7 @@ class Pipeline {
     }
 
     // early return during evaluation
-    if (asset.options.custom.toVal) {
+    if (asset.options.vs.toVal) {
       asset.generated = valGenerated;
       asset.hash = await asset.generateHash();
       return {generated: valGenerated, ast: asset.ast};
@@ -116,7 +116,7 @@ class Pipeline {
 
     // Post process. This allows assets a chance to modify the output produced by sub-asset types.
     try {
-      if (!asset.options.custom.toVal) {
+      if (!asset.options.vs.toVal) {
         // TODO: remove this check, early return now
         generated = await asset.postProcess(generated);
       }

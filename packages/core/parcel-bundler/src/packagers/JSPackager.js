@@ -18,16 +18,16 @@ class JSPackager extends Packager {
     this.externalModules = new Set();
 
     // only on the root bundle
-    if (this.options.custom && !this.bundle.parentBundle.type) {
+    if (this.options.vs && !this.bundle.parentBundle.type) {
       let preludeCode = prelude.minified;
-      await this.write(` try {${this.options.custom.log}.init();\n`);
+      await this.write(` try {${this.options.vs.log}.init();\n`);
       await this.write(preludeCode + '({');
       const preludeLines = lineCounter(preludeCode) + 1;
       this.preludeLines = preludeLines;
       this.lineOffset = preludeLines;
     } else {
       let preludeCode =
-        this.options.minify || this.options.custom
+        this.options.minify || this.options.vs
           ? prelude.minified
           : prelude.source;
       if (this.options.target === 'electron') {
@@ -40,8 +40,8 @@ class JSPackager extends Packager {
       }
 
       if (
-        this.options.custom &&
-        this.options.custom.included.includes(this.bundle.entryAsset.id)
+        this.options.vs &&
+        this.options.vs.included.includes(this.bundle.entryAsset.id)
       ) {
         await this.write('try {\n');
       }
@@ -139,14 +139,14 @@ class JSPackager extends Packager {
       (code || '');
 
     if (
-      this.options.custom &&
+      this.options.vs &&
       // !this.bundle.parentBundle.type &&
       this.bundle.entryAsset.id === id &&
-      this.options.custom.included.includes(id)
-      // this.options.custom.filename === id
-      // this.options.custom.included.includes(id)
+      this.options.vs.included.includes(id)
+      // this.options.vs.filename === id
+      // this.options.vs.included.includes(id)
     ) {
-      wrapped += `\n${this.options.custom.log}.end();},`;
+      wrapped += `\n${this.options.vs.log}.end();},`;
     } else {
       wrapped += '\n},';
     }
@@ -227,11 +227,11 @@ class JSPackager extends Packager {
 
       loads += 'b.load(' + JSON.stringify(preload) + ')';
       if (this.bundle.entryAsset) {
-        if (this.options.custom) {
+        if (this.options.vs) {
           loads += `.then(function(){require(${JSON.stringify(
             this.bundle.entryAsset.id
-          )});}).catch(function(e){${this.options.custom.log}.error(e);${
-            this.options.custom.log
+          )});}).catch(function(e){${this.options.vs.log}.error(e);${
+            this.options.vs.log
           }.end();})`;
         } else {
           loads += `.then(function(){require(${JSON.stringify(
@@ -275,7 +275,7 @@ class JSPackager extends Packager {
         JSON.stringify(this.options.global || null) +
         ')'
     );
-    if (this.options.sourceMaps && !this.options.custom) {
+    if (this.options.sourceMaps && !this.options.vs) {
       // Add source map url if a map bundle exists
       let mapBundle = this.bundle.siblingBundlesMap.get('map');
       if (mapBundle) {
@@ -287,14 +287,14 @@ class JSPackager extends Packager {
       }
     }
 
-    // if (this.options.custom && !this.bundle.parentBundle.type) {
+    // if (this.options.vs && !this.bundle.parentBundle.type) {
     if (
-      this.options.custom &&
-      this.options.custom.included.includes(this.bundle.entryAsset.id)
+      this.options.vs &&
+      this.options.vs.included.includes(this.bundle.entryAsset.id)
     ) {
       await this.write(
-        `;\n} catch (err) {${this.options.custom.log}.error(err);${
-          this.options.custom.log
+        `;\n} catch (err) {${this.options.vs.log}.error(err);${
+          this.options.vs.log
         }.end();}`
       );
     }

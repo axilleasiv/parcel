@@ -21,7 +21,7 @@ class SourceMapPackager extends Packager {
   async end() {
     let file = path.basename(this.bundle.parentBundle.name);
 
-    if (this.options.custom) {
+    if (this.options.vs) {
       this.bundler.mainBundle.sourceMapFinal = this.sourceMap;
     } else {
       await this.write(

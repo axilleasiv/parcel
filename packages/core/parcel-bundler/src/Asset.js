@@ -204,7 +204,7 @@ class Asset {
 
   async evaluation() {
     const rel = this.id;
-    let {log, included, toVal, doc} = this.options.custom;
+    let {log, included, toVal, doc} = this.options.vs;
 
     // unneeded check
     if (included.includes(rel)) {
@@ -236,7 +236,7 @@ class Asset {
     let opts = {
       sourceMaps: null,
       sourceFileName: this.relativeName,
-      comments: !this.options.custom,
+      comments: true,
       retainLines: true
     };
 
@@ -268,7 +268,7 @@ class Asset {
           : this.relativeName;
     }
 
-    if (this.options.custom && this.options.custom.toVal) {
+    if (this.options.vs && this.options.vs.toVal) {
       await this.evaluation();
       this.generated = await this.generateEval();
     } else {

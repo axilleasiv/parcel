@@ -1,6 +1,6 @@
 class Logger {
   setOptions(options) {
-    this.enabled = options.custom && options.custom.logger;
+    this.enabled = options.vs && options.vs.logger;
     this.setFallBacks();
   }
 

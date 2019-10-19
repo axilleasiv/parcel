@@ -79,9 +79,7 @@ class Resolver {
   }
 
   async resolveModule(filename, parent) {
-    const rootDir = this.options.custom
-      ? this.options.custom.rootDir
-      : process.cwd();
+    const rootDir = this.options.vs ? this.options.vs.rootDir : process.cwd();
     let dir = parent ? path.dirname(parent) : rootDir;
 
     // If this isn't the entrypoint, resolve the input file to an absolute path
@@ -124,8 +122,8 @@ class Resolver {
   }
 
   resolveFilename(filename, dir) {
-    const rootDir = this.options.custom.rootDir
-      ? this.options.custom.rootDir
+    const rootDir = this.options.vs.rootDir
+      ? this.options.vs.rootDir
       : this.options.rootDir;
 
     switch (filename[0]) {
@@ -316,7 +314,7 @@ class Resolver {
     // Try all supported extensions
     for (let f of this.expandFile(file, extensions, pkg)) {
       if (
-        (this.options.custom && f === this.options.custom.entryFile) ||
+        (this.options.vs && f === this.options.vs.entryFile) ||
         (await this.isFile(f))
       ) {
         return {path: f, pkg};
@@ -452,7 +450,7 @@ class Resolver {
     // Load the local package, and resolve aliases
     let pkg = await this.findPackage(dir);
 
-    if (this.options.custom) {
+    if (this.options.vs) {
       // used to suppor alias importing like node_module(one word)
       // relative and @scope/modules are ignored
       if (filename.indexOf(path.sep) === -1) {

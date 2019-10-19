@@ -134,7 +134,7 @@ class JSAsset extends Asset {
           ]
         ];
 
-        let {log, included, doc} = this.options.custom;
+        let {log, included, doc} = this.options.vs;
         const rel = this.id;
         if (included.includes(rel)) {
           plugins.push([

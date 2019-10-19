@@ -85,7 +85,7 @@ async function getBabelConfig(asset) {
     mergeConfigs(result, flowConfig);
   }
 
-  if (asset.options.custom) {
+  if (asset.options.vs) {
     mergeConfigs(result, getReplConfig(asset));
   }
 

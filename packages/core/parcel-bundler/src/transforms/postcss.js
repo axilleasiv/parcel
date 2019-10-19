@@ -9,7 +9,7 @@ const fs = require('@parcel/fs');
 
 module.exports = async function(asset) {
   //TODO:
-  if (asset.options.custom) {
+  if (asset.options.vs) {
     return;
   }
 
@@ -91,6 +91,7 @@ async function getConfig(asset) {
   return config;
 }
 
+//TODO:
 const createLoader = asset =>
   class ParcelFileSystemLoader extends FileSystemLoader {
     async fetch(composesPath, relativeTo) {

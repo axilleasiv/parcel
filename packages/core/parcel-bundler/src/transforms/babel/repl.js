@@ -2,14 +2,7 @@ const {logger} = require('@achil/babel-plugin-console');
 
 const getReplConfig = asset => {
   const rel = asset.id;
-  let {
-    cvVar,
-    cvIncreaseCb,
-    log,
-    included,
-    coverage,
-    doc
-  } = asset.options.custom;
+  let {cvVar, cvIncreaseCb, log, included, coverage, doc} = asset.options.vs;
 
   const plugins = [[require('@babel/plugin-proposal-class-properties')]];
 

@@ -14,9 +14,7 @@ class WorkerFarm extends EventEmitter {
     super();
     this.options = {
       maxConcurrentWorkers:
-        options.custom && options.custom.useWorkers
-          ? WorkerFarm.getNumWorkers()
-          : 1,
+        options.vs && options.vs.useWorkers ? WorkerFarm.getNumWorkers() : 1,
       maxConcurrentCallsPerWorker: WorkerFarm.getConcurrentCallsPerWorker(),
       forcedKillTime: 500,
       warmWorkers: true,

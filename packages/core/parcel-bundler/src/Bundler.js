@@ -30,8 +30,8 @@ class Bundler extends EventEmitter {
   constructor(entryFiles, options = {}) {
     super();
 
-    if (options.custom) {
-      this.entryFiles = [options.custom.entryFile];
+    if (options.vs) {
+      this.entryFiles = [options.vs.entryFile];
     } else {
       entryFiles = this.normalizeEntries(entryFiles);
       this.watchedGlobs = entryFiles.filter(entry => isGlob(entry));
@@ -139,11 +139,11 @@ class Bundler extends EventEmitter {
       logLevel: isNaN(options.logLevel) ? 3 : options.logLevel,
       entryFiles: this.entryFiles,
       hmrPort: options.hmrPort || 0,
-      custom: options.custom,
+      custom: options.vs,
       rootDir:
-        this.entryFiles && !options.custom
+        this.entryFiles && !options.vs
           ? getRootDir(this.entryFiles)
-          : options.custom.relativeDir,
+          : options.vs.relativeDir,
       sourceMaps:
         (typeof options.sourceMaps === 'boolean' ? options.sourceMaps : true) &&
         !scopeHoist,
@@ -241,9 +241,9 @@ class Bundler extends EventEmitter {
   }
 
   async reset(options) {
-    this.entryFiles = [options.custom.entryFile];
+    this.entryFiles = [options.vs.entryFile];
     this.options = this.normalizeOptions(options);
-    this.options.custom.fs = mem.clear();
+    this.options.vs.fs = mem.clear();
     this.options.extensions = Object.assign({}, this.parser.extensions);
     this.options.bundleLoaders = this.bundleLoaders;
     this.addDirty();
@@ -261,21 +261,21 @@ class Bundler extends EventEmitter {
   }
 
   init() {
-    if (!this.options.custom.fs) {
-      this.options.custom.fs = mem.fs();
+    if (!this.options.vs.fs) {
+      this.options.vs.fs = mem.fs();
     }
 
     this.addDirty();
   }
 
   addDirty() {
-    const dirty = this.options.custom.dirty;
+    const dirty = this.options.vs.dirty;
     if (dirty) {
       dirty.forEach(file => {
         mem.set(file.path, file.code);
       });
 
-      this.options.custom.dirty = null;
+      this.options.vs.dirty = null;
     }
   }
 
@@ -284,10 +284,10 @@ class Bundler extends EventEmitter {
       let changedAsset = this.loadedAssets.get(path);
 
       if (toVal) {
-        changedAsset.options.custom.toVal = toVal;
+        changedAsset.options.vs.toVal = toVal;
       } else {
-        if (changedAsset.options.custom.toVal) {
-          changedAsset.options.custom.toVal = null;
+        if (changedAsset.options.vs.toVal) {
+          changedAsset.options.vs.toVal = null;
         }
       }
       this.buildQueue.add(changedAsset, !toVal, toVal);
@@ -313,7 +313,7 @@ class Bundler extends EventEmitter {
     }
 
     if (toInclude) {
-      const custom = this.options.custom;
+      const custom = this.options.vs;
 
       for (let relPath of toInclude) {
         if (!custom.included.includes(relPath)) {
@@ -352,8 +352,8 @@ class Bundler extends EventEmitter {
       // Start worker farm, watcher, etc. if needed
       await this.start();
 
-      if (this.options.custom) {
-        this.options.custom.doc = doc;
+      if (this.options.vs) {
+        this.options.vs.doc = doc;
 
         if (file) {
           mem.set(file.path, file.code);
@@ -386,7 +386,7 @@ class Bundler extends EventEmitter {
 
         initialised = true;
       } else {
-        if (this.options.custom) {
+        if (this.options.vs) {
           // const fileAsset = this.loadedAssets.get(file.path);
 
           this.onChanged(toChange, toInclude, file, toVal);
@@ -448,19 +448,16 @@ class Bundler extends EventEmitter {
       let buildTime = Date.now() - startTime;
       let time = prettifyTime(buildTime);
       logger.success(`Built in ${time}.`);
-      if (
-        !this.watcher &&
-        (this.options.custom && this.options.custom.report)
-      ) {
+      if (!this.watcher && (this.options.vs && this.options.vs.report)) {
         // custom: bundleReport(this.mainBundle, this.options.detailedReport);
       }
 
       let evaluation = null;
       if (changedAssets.length) {
         for (const asset of changedAssets) {
-          if (asset.options.custom.toVal) {
-            evaluation = asset.options.custom.toVal.type;
-            asset.options.custom.toVal = null;
+          if (asset.options.vs.toVal) {
+            evaluation = asset.options.vs.toVal.type;
+            asset.options.vs.toVal = null;
           }
         }
       }
@@ -498,7 +495,7 @@ class Bundler extends EventEmitter {
       this.emit('buildEnd');
 
       // If not in watch mode, stop the worker farm so we don't keep the process running.
-      if (!this.watcher && this.options.killWorkers && !this.options.custom) {
+      if (!this.watcher && this.options.killWorkers && !this.options.vs) {
         await this.stop();
       }
     }
@@ -580,8 +577,8 @@ class Bundler extends EventEmitter {
 
     let asset = this.parser.getAsset(path, this.options);
 
-    if (this.options.custom) {
-      if (!asset.options.custom.toVal) {
+    if (this.options.vs) {
+      if (!asset.options.vs.toVal) {
         this.loadedAssets.set(path, asset);
       }
     } else {
@@ -722,19 +719,19 @@ class Bundler extends EventEmitter {
     // First try the cache, otherwise load and compile in the background
     asset.startTime = Date.now();
     let processed =
-      !asset.options.custom.toVal &&
+      !asset.options.vs.toVal &&
       this.cache &&
       (await this.cache.read(asset.name));
     let cacheMiss = false;
     if (!processed || asset.shouldInvalidate(processed.cacheData)) {
-      const toVal = asset.options.custom.toVal;
+      const toVal = asset.options.vs.toVal;
 
       processed = await this.farm.run(asset.name, {
         contents: mem.get(asset.name),
         ast: toVal ? asset.ast : undefined,
         props: {
-          included: this.options.custom.included,
-          doc: this.options.custom.doc,
+          included: this.options.vs.included,
+          doc: this.options.vs.doc,
           toVal
         },
         options: {
@@ -745,7 +742,7 @@ class Bundler extends EventEmitter {
     }
 
     // TODO:
-    if (this.options.custom) {
+    if (this.options.vs) {
       asset.ast = processed.ast;
     }
 
@@ -808,8 +805,8 @@ class Bundler extends EventEmitter {
     if (
       this.cache &&
       cacheMiss &&
-      this.options.custom.entryFile !== asset.name && // TODO: why?
-      !asset.options.custom.toVal
+      this.options.vs.entryFile !== asset.name && // TODO: why?
+      !asset.options.vs.toVal
     ) {
       this.cache.write(asset.name, processed);
     }
