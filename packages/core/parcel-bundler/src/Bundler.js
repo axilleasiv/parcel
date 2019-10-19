@@ -77,6 +77,8 @@ class Bundler extends EventEmitter {
     this.rebuildTimeout = null;
 
     logger.setOptions(this.options);
+
+    this.init();
   }
 
   normalizeEntries(entryFiles) {
@@ -244,7 +246,9 @@ class Bundler extends EventEmitter {
     this.options.custom.fs = mem.clear();
     this.options.extensions = Object.assign({}, this.parser.extensions);
     this.options.bundleLoaders = this.bundleLoaders;
+    this.addDirty();
 
+    // await this.farm.end();
     this.farm.init(this.options);
 
     this.resolver = new Resolver(this.options);
@@ -254,6 +258,25 @@ class Bundler extends EventEmitter {
     this.loadedAssets = new Map();
     this.entryAssets = null;
     this.bundleHashes = null;
+  }
+
+  init() {
+    if (!this.options.custom.fs) {
+      this.options.custom.fs = mem.fs();
+    }
+
+    this.addDirty();
+  }
+
+  addDirty() {
+    const dirty = this.options.custom.dirty;
+    if (dirty) {
+      dirty.forEach(file => {
+        mem.set(file.path, file.code);
+      });
+
+      this.options.custom.dirty = null;
+    }
   }
 
   onChangedAdd(path, toVal) {
@@ -331,10 +354,6 @@ class Bundler extends EventEmitter {
 
       if (this.options.custom) {
         this.options.custom.doc = doc;
-
-        if (!this.options.custom.fs) {
-          this.options.custom.fs = mem.fs();
-        }
 
         if (file) {
           mem.set(file.path, file.code);
