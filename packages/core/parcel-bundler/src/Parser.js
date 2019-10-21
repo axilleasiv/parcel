@@ -20,6 +20,7 @@ class Parser {
     this.registerExtension('coffee', './assets/CoffeeScriptAsset');
     this.registerExtension('elm', './assets/ElmAsset');
     this.registerExtension('vue', './assets/VueAsset');
+    this.registerExtension('svelte', './assets/SvelteAsset');
     this.registerExtension('json', './assets/JSONAsset');
     this.registerExtension('json5', './assets/JSONAsset');
     this.registerExtension('jsonld', './assets/JSONLDAsset');
