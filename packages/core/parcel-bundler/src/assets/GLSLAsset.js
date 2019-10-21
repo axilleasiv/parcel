@@ -17,6 +17,7 @@ class GLSLAsset extends Asset {
     // This adds support for parcel features like aliases, and tilde paths.
     const resolver = new Resolver({
       extensions: ['.glsl', '.vert', '.frag'],
+      vs: this.options.vs,
       rootDir: this.options.rootDir
     });
 

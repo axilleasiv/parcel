@@ -79,6 +79,7 @@ function urlPlugin(asset) {
 function getFileManager(less, options) {
   const resolver = new Resolver({
     extensions: ['.css', '.less'],
+    vs: options.vs,
     rootDir: options.rootDir
   });
 

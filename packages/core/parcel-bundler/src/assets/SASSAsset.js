@@ -18,6 +18,7 @@ class SASSAsset extends Asset {
     let render = promisify(sass.render.bind(sass));
     const resolver = new Resolver({
       extensions: ['.scss', '.sass'],
+      vs: this.options.vs,
       rootDir: this.options.rootDir
     });
 
