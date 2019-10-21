@@ -139,7 +139,7 @@ class Bundler extends EventEmitter {
       logLevel: isNaN(options.logLevel) ? 3 : options.logLevel,
       entryFiles: this.entryFiles,
       hmrPort: options.hmrPort || 0,
-      custom: options.vs,
+      vs: options.vs,
       rootDir:
         this.entryFiles && !options.vs
           ? getRootDir(this.entryFiles)
@@ -268,8 +268,8 @@ class Bundler extends EventEmitter {
     this.addDirty();
   }
 
-  addDirty() {
-    const dirty = this.options.vs.dirty;
+  addDirty(files) {
+    const dirty = files || this.options.vs.dirty;
     if (dirty) {
       dirty.forEach(file => {
         mem.set(file.path, file.code);
@@ -474,7 +474,28 @@ class Bundler extends EventEmitter {
 
       logger.error(err);
 
-      this.emit('buildError', err);
+      const sources = [];
+      const errorRel = Path.relative(
+        this.options.rootDir,
+        err.fileName
+      ).replace(/\\/g, '/');
+
+      sources.push(errorRel);
+
+      for (let asset of this.loadedAssets.values()) {
+        if (asset.name === err.fileName) {
+          continue;
+        }
+
+        if (asset.id) {
+          sources.push(asset.id);
+        }
+      }
+
+      this.emit('buildError', {
+        err,
+        sources
+      });
 
       this.loadedAssets = new Map();
       this.entryAssets = null;

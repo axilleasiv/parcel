@@ -10,7 +10,9 @@ const memFS = {
   },
 
   remove(path) {
-    delete files[path];
+    if (files[path]) {
+      files[path] = null;
+    }
   },
 
   clear() {

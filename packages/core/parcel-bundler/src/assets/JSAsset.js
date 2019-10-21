@@ -25,6 +25,9 @@ const GLOBAL_RE = /\b(?:process|__dirname|__filename|global|Buffer|define)\b/;
 const FS_RE = /\breadFileSync\b/;
 const SW_RE = /\bnavigator\s*\.\s*serviceWorker\s*\.\s*register\s*\(/;
 const WORKER_RE = /\bnew\s*(?:Shared)?Worker\s*\(/;
+const isCompiled = id => {
+  return id.includes('.ts') || id.includes('.tsx') || id.includes('.coffee');
+};
 
 class JSAsset extends Asset {
   constructor(name, options) {
@@ -168,8 +171,13 @@ class JSAsset extends Asset {
   async generate() {
     let code;
     if (this.isAstDirty) {
+      let sourceMaps = this.options.sourceMaps;
+      if (isCompiled(this.id)) {
+        sourceMaps = false;
+      }
+
       let opts = {
-        sourceMaps: this.options.sourceMaps,
+        sourceMaps,
         sourceFileName: this.relativeName,
         comments: true,
         retainLines: true
@@ -184,7 +192,7 @@ class JSAsset extends Asset {
 
         // Check if we already have a source map (e.g. from TypeScript or CoffeeScript)
         // In that case, we need to map the original source map to the babel generated one.
-        if (this.sourceMap) {
+        if (this.sourceMap && !isCompiled(this.id)) {
           this.sourceMap = await new SourceMap().extendSourceMap(
             this.sourceMap,
             rawMap
