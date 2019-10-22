@@ -124,8 +124,10 @@ class CSSAsset extends Asset {
   }
 
   async pretransform() {
-    if (this.options.sourceMaps && !this.previousSourceMap) {
-      this.previousSourceMap = await loadSourceMap(this);
+    if (!this.options.vs) {
+      if (this.options.sourceMaps && !this.previousSourceMap) {
+        this.previousSourceMap = await loadSourceMap(this);
+      }
     }
   }
 
@@ -171,7 +173,7 @@ class CSSAsset extends Asset {
         'module.exports = ' + JSON.stringify(this.cssModules, null, 2) + ';';
     }
 
-    if (this.options.sourceMaps) {
+    if (!this.options.vs && this.options.sourceMaps) {
       if (this.sourceMap) {
         this.sourceMap = await new SourceMap().addMap(this.sourceMap);
       }

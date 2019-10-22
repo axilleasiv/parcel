@@ -262,7 +262,6 @@ class Bundler extends EventEmitter {
 
     try {
       // Start worker farm, watcher, etc. if needed
-      // @ts-ignore
       await this.start(vs);
 
       // Emit start event, after bundler is initialised
@@ -350,9 +349,9 @@ class Bundler extends EventEmitter {
       let buildTime = Date.now() - startTime;
       let time = prettifyTime(buildTime);
       logger.success(`Built in ${time}.`);
-      if (!this.watcher && (this.options.vs && this.options.vs.report)) {
-        // custom: bundleReport(this.mainBundle, this.options.detailedReport);
-      }
+      // if (!this.watcher && (this.options.vs && this.options.vs.report)) {
+      // custom: bundleReport(this.mainBundle, this.options.detailedReport);
+      // }
 
       let evaluation = null;
       if (changedAssets.length) {
@@ -641,9 +640,7 @@ class Bundler extends EventEmitter {
     }
 
     // TODO:
-    if (this.options.vs) {
-      asset.ast = processed.ast;
-    }
+    asset.ast = processed.ast;
 
     asset.endTime = Date.now();
     asset.buildTime = asset.endTime - asset.startTime;

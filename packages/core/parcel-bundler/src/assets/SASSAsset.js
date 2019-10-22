@@ -18,13 +18,14 @@ class SASSAsset extends Asset {
     let render = promisify(sass.render.bind(sass));
     const resolver = new Resolver({
       extensions: ['.scss', '.sass'],
-      vs: this.options.vs,
-      rootDir: this.options.rootDir
+      rootDir: this.options.rootDir,
+      vs: this.options.vs
     });
 
     let opts =
-      (await this.getConfig(['.sassrc', '.sassrc.js'], {packageKey: 'sass'})) ||
-      {};
+      (await this.getConfig(['.sassrc', '.sassrc.js'], {
+        packageKey: 'sass'
+      })) || {};
     opts.includePaths = (opts.includePaths
       ? opts.includePaths.map(includePath => path.resolve(includePath))
       : []
@@ -56,7 +57,7 @@ class SASSAsset extends Asset {
         .catch(err => done(normalizeError(err)));
     });
 
-    if (this.options.sourceMaps) {
+    if (!this.options.vs && this.options.sourceMaps) {
       opts.sourceMap = true;
       opts.file = this.name;
       opts.outFile = this.name;

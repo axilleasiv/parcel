@@ -18,11 +18,12 @@ class LESSAsset extends Asset {
     let render = promisify(less.render.bind(less));
 
     let opts =
-      (await this.getConfig(['.lessrc', '.lessrc.js'], {packageKey: 'less'})) ||
-      {};
+      (await this.getConfig(['.lessrc', '.lessrc.js'], {
+        packageKey: 'less'
+      })) || {};
     opts.filename = this.name;
     opts.plugins = (opts.plugins || []).concat(urlPlugin(this));
-    if (this.options.sourceMaps) {
+    if (!this.options.vs && this.options.sourceMaps) {
       opts.sourceMap = {outputSourceFiles: true};
     }
 
