@@ -20,7 +20,6 @@ const installPackage = require('./utils/installPackage');
 const prettifyTime = require('./utils/prettifyTime');
 const getRootDir = require('./utils/getRootDir');
 const {glob, isGlob} = require('./utils/glob');
-const mem = require('./utils/mem');
 
 /**
  * The Bundler is the main entry point. It resolves and loads assets,
@@ -77,8 +76,6 @@ class Bundler extends EventEmitter {
     this.rebuildTimeout = null;
 
     logger.setOptions(this.options);
-
-    this.init();
   }
 
   normalizeEntries(entryFiles) {
@@ -240,96 +237,11 @@ class Bundler extends EventEmitter {
     }
   }
 
-  async reset(options) {
-    this.entryFiles = [options.vs.entryFile];
-    this.options = this.normalizeOptions(options);
-    this.options.vs.fs = mem.clear();
-    this.options.extensions = Object.assign({}, this.parser.extensions);
-    this.options.bundleLoaders = this.bundleLoaders;
-    this.addDirty();
+  onChange() {}
+  onError() {}
+  memGet() {}
 
-    // await this.farm.end();
-    this.farm.init(this.options);
-
-    this.resolver = new Resolver(this.options);
-    // this.parser = new Parser(this.options);
-    // this.packagers = new PackagerRegistry(this.options);
-    this.cache = this.options.cache ? new FSCache(this.options) : null;
-    this.loadedAssets = new Map();
-    this.entryAssets = null;
-    this.bundleHashes = null;
-  }
-
-  init() {
-    if (!this.options.vs.fs) {
-      this.options.vs.fs = mem.fs();
-    }
-
-    this.addDirty();
-  }
-
-  addDirty(files) {
-    const dirty = files || this.options.vs.dirty;
-    if (dirty) {
-      dirty.forEach(file => {
-        mem.set(file.path, file.code);
-      });
-
-      this.options.vs.dirty = null;
-    }
-  }
-
-  onChangedAdd(path, toVal) {
-    if (this.loadedAssets.has(path)) {
-      let changedAsset = this.loadedAssets.get(path);
-
-      if (toVal) {
-        changedAsset.options.vs.toVal = toVal;
-      } else {
-        if (changedAsset.options.vs.toVal) {
-          changedAsset.options.vs.toVal = null;
-        }
-      }
-      this.buildQueue.add(changedAsset, !toVal, toVal);
-    }
-  }
-
-  onChanged(toChange, toInclude, file, toVal) {
-    let filePath;
-    if (file) {
-      filePath = file.path;
-      this.onChangedAdd(filePath, toVal);
-    }
-
-    if (toChange) {
-      for (let {path, keep} of toChange) {
-        if (path !== filePath) {
-          if (!keep) {
-            mem.remove(path);
-          }
-          this.onChangedAdd(path, toVal);
-        }
-      }
-    }
-
-    if (toInclude) {
-      const custom = this.options.vs;
-
-      for (let relPath of toInclude) {
-        if (!custom.included.includes(relPath)) {
-          custom.included.push(relPath);
-
-          const absPath = Path.join(custom.relativeDir, relPath);
-
-          if (absPath !== filePath) {
-            this.onChangedAdd(absPath, toVal);
-          }
-        }
-      }
-    }
-  }
-
-  async bundle({file, toChange, toInclude, toVal, doc}) {
+  async bundle(vs) {
     // If another bundle is already pending, wait for that one to finish and retry.
     if (this.pending) {
       return new Promise((resolve, reject) => {
@@ -350,15 +262,8 @@ class Bundler extends EventEmitter {
 
     try {
       // Start worker farm, watcher, etc. if needed
-      await this.start();
-
-      if (this.options.vs) {
-        this.options.vs.doc = doc;
-
-        if (file) {
-          mem.set(file.path, file.code);
-        }
-      }
+      // @ts-ignore
+      await this.start(vs);
 
       // Emit start event, after bundler is initialised
       this.emit('buildStart', this.entryFiles);
@@ -386,11 +291,8 @@ class Bundler extends EventEmitter {
 
         initialised = true;
       } else {
-        if (this.options.vs) {
-          // const fileAsset = this.loadedAssets.get(file.path);
-
-          this.onChanged(toChange, toInclude, file, toVal);
-        }
+        // @ts-ignore
+        this.onChange(vs);
       }
 
       // Build the queued assets.
@@ -472,38 +374,14 @@ class Bundler extends EventEmitter {
     } catch (err) {
       this.error = err;
 
-      logger.error(err);
+      //custom: logger.error(err);
 
-      const sources = [];
-      const errorRel = Path.relative(
-        this.options.rootDir,
-        err.fileName
-      ).replace(/\\/g, '/');
+      this.onError(err);
+      //this.emit('buildError', err);
 
-      sources.push(errorRel);
-
-      for (let asset of this.loadedAssets.values()) {
-        if (asset.name === err.fileName) {
-          continue;
-        }
-
-        if (asset.id) {
-          sources.push(asset.id);
-        }
-      }
-
-      this.emit('buildError', {
-        err,
-        sources
-      });
-
-      this.loadedAssets = new Map();
-      this.entryAssets = null;
-      this.bundleHashes = null;
-
-      if (this.hmr) {
+      /* custom: if (this.hmr) {
         this.hmr.emitError(err);
-      }
+      } */
 
       if (this.options.throwErrors && !this.hmr) {
         throw err;
@@ -537,9 +415,9 @@ class Bundler extends EventEmitter {
     this.options.extensions = Object.assign({}, this.parser.extensions);
     this.options.bundleLoaders = this.bundleLoaders;
 
-    if (this.options.watch) {
-      // custom:
-      /* this.watcher = new Watcher();
+    // custom:
+    /* if (this.options.watch) {
+      this.watcher = new Watcher();
       // Wait for ready event for reliable testing on watcher
       if (process.env.NODE_ENV === 'test' && !this.watcher.ready) {
         await new Promise(resolve => this.watcher.once('ready', resolve));
@@ -549,14 +427,14 @@ class Bundler extends EventEmitter {
       });
       this.watcher.on('add', this.onAdd.bind(this));
       this.watcher.on('change', this.onChange.bind(this));
-      this.watcher.on('unlink', this.onUnlink.bind(this)); */
-    }
+      this.watcher.on('unlink', this.onUnlink.bind(this));
+    } */
 
-    if (this.options.hmr) {
-      // custom:
-      /* this.hmr = new HMRServer();
-      this.options.hmrPort = await this.hmr.start(this.options); */
-    }
+    // custom:
+    /* if (this.options.hmr) {
+      this.hmr = new HMRServer();
+      this.options.hmrPort = await this.hmr.start(this.options);
+    } */
 
     this.farm = await WorkerFarm.getShared(this.options, {
       workerPath: require.resolve('./worker.js')
@@ -748,7 +626,7 @@ class Bundler extends EventEmitter {
       const toVal = asset.options.vs.toVal;
 
       processed = await this.farm.run(asset.name, {
-        contents: mem.get(asset.name),
+        contents: this.memGet(asset.name),
         ast: toVal ? asset.ast : undefined,
         props: {
           included: this.options.vs.included,
