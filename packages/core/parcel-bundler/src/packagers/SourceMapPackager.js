@@ -22,7 +22,7 @@ class SourceMapPackager extends Packager {
     let file = path.basename(this.bundle.parentBundle.name);
 
     if (this.options.vs) {
-      this.bundler.mainBundle.sourceMapFinal = this.sourceMap;
+      this.bundler.mainBundle.sourceMap = this.sourceMap;
     } else {
       await this.write(
         this.sourceMap.stringify(

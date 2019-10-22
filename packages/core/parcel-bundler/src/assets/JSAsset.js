@@ -24,9 +24,14 @@ const BROWSER_RE = /\b(?:process\.browser)\b/;
 const GLOBAL_RE = /\b(?:process|__dirname|__filename|global|Buffer|define)\b/;
 const FS_RE = /\breadFileSync\b/;
 const SW_RE = /\bnavigator\s*\.\s*serviceWorker\s*\.\s*register\s*\(/;
+const path = require('path');
 const WORKER_RE = /\bnew\s*(?:Shared)?Worker\s*\(/;
 const isCompiled = id => {
   return id.includes('.ts') || id.includes('.tsx') || id.includes('.coffee');
+};
+const isLoader = (extensionDir, name) => {
+  const rel = path.relative(extensionDir, name);
+  return rel[0] && rel[0] !== '.' && rel.indexOf('node_modules') === 0;
 };
 
 class JSAsset extends Asset {
@@ -172,7 +177,10 @@ class JSAsset extends Asset {
     let code;
     if (this.isAstDirty) {
       let sourceMaps = this.options.sourceMaps;
-      if (isCompiled(this.id)) {
+      if (
+        isCompiled(this.id) ||
+        isLoader(this.options.vs.extensionDir, this.name)
+      ) {
         sourceMaps = false;
       }
 
@@ -207,7 +215,11 @@ class JSAsset extends Asset {
       code = this.outputCode != null ? this.outputCode : this.contents;
     }
 
-    if (this.options.sourceMaps && !this.sourceMap) {
+    if (
+      !isLoader(this.options.vs.extensionDir, this.name) &&
+      this.options.sourceMaps &&
+      !this.sourceMap
+    ) {
       this.sourceMap = new SourceMap().generateEmptyMap(
         this.relativeName,
         this.contents
@@ -216,7 +228,10 @@ class JSAsset extends Asset {
 
     if (this.globals.size > 0) {
       code = Array.from(this.globals.values()).join('\n') + '\n' + code;
-      if (this.options.sourceMaps) {
+      if (
+        !isLoader(this.options.vs.extensionDir, this.name) &&
+        this.options.sourceMaps
+      ) {
         if (!(this.sourceMap instanceof SourceMap)) {
           this.sourceMap = await new SourceMap().addMap(this.sourceMap);
         }

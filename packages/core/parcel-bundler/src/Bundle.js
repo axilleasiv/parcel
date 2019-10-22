@@ -304,20 +304,6 @@ class Bundle {
 
     return hash.digest('hex');
   }
-
-  getOriginal(generatedLine) {
-    return this.sourceMapFinal.originalPositionFor({
-      line: generatedLine,
-      column: 0
-    });
-  }
-
-  getGenerated(originalLine) {
-    return this.sourceMapFinal.generatedPositionFor({
-      line: originalLine,
-      column: 0
-    });
-  }
 }
 
 module.exports = Bundle;
