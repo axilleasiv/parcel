@@ -43,8 +43,8 @@ parcelRequire = (function (modules, cache, entry, globalName) {
       localRequire.cache = {};
 
       var module = cache[name] = new newRequire.Module(name);
-
-      modules[name][0].call(module.exports, localRequire, module, module.exports, this);
+			
+			modules[name][0].call(module.exports, localRequire, module, module.exports, undefined, undefined, this);
     }
 
     return cache[name].exports;

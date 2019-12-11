@@ -17,6 +17,7 @@ const hoist = require('../scope-hoisting/hoist');
 const loadSourceMap = require('../utils/loadSourceMap');
 const isAccessedVarChanged = require('../utils/isAccessedVarChanged');
 const {referencesLog} = require('@achil/babel-plugin-console');
+const {isLoader, isCompiled} = require('../utils/repl');
 
 const IMPORT_RE = /\b(?:import\b|export\b|require\s*\()/;
 const ENV_RE = /\b(?:process\.env)\b/;
@@ -24,15 +25,7 @@ const BROWSER_RE = /\b(?:process\.browser)\b/;
 const GLOBAL_RE = /\b(?:process|__dirname|__filename|global|Buffer|define)\b/;
 const FS_RE = /\breadFileSync\b/;
 const SW_RE = /\bnavigator\s*\.\s*serviceWorker\s*\.\s*register\s*\(/;
-const path = require('path');
 const WORKER_RE = /\bnew\s*(?:Shared)?Worker\s*\(/;
-const isCompiled = id => {
-  return id.includes('.ts') || id.includes('.tsx') || id.includes('.coffee');
-};
-const isLoader = (extensionDir, name) => {
-  const rel = path.relative(extensionDir, name);
-  return rel[0] && rel[0] !== '.' && rel.indexOf('node_modules') === 0;
-};
 
 class JSAsset extends Asset {
   constructor(name, options) {

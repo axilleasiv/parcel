@@ -4,6 +4,7 @@ const getExisting = require('../utils/getExisting');
 const urlJoin = require('../utils/urlJoin');
 const lineCounter = require('../utils/lineCounter');
 const objectHash = require('../utils/objectHash');
+const {isReplFile} = require('../utils/repl');
 
 const prelude = getExisting(
   path.join(__dirname, '../builtins/prelude.min.js'),
@@ -108,6 +109,7 @@ class JSPackager extends Packager {
     this.bundle.addOffset(asset, this.lineOffset);
     await this.writeModule(
       asset.id,
+      asset.name,
       asset.generated.js,
       deps,
       asset.generated.map
@@ -131,20 +133,26 @@ class JSPackager extends Packager {
     return objectHash([asset.generated.js, deps]);
   }
 
-  async writeModule(id, code, deps = {}, map) {
+  async writeModule(id, name, code, deps = {}, map) {
     let wrapped = this.first ? '' : ',';
-    wrapped +=
-      JSON.stringify(id) +
-      ':[function(require,module,exports) {\n' +
-      (code || '');
+
+    wrapped += JSON.stringify(id);
+
+    if (id && isReplFile(this.options.vs.extensionDir, id, name)) {
+      const filename = path.join(this.options.vs.relativeDir, id);
+      const dirname = path.dirname(filename);
+
+      wrapped += `:[function(require,module,exports,__filename='${filename}',__dirname='${dirname}') {\n`;
+    } else {
+      wrapped += ':[function(require,module,exports) {\n';
+    }
+
+    wrapped += code || '';
 
     if (
       this.options.vs &&
-      // !this.bundle.parentBundle.type &&
       this.bundle.entryAsset.id === id &&
       this.options.vs.included.includes(id)
-      // this.options.vs.filename === id
-      // this.options.vs.included.includes(id)
     ) {
       wrapped += `\n${this.options.vs.log}.end();},`;
     } else {
@@ -244,7 +252,7 @@ class JSPackager extends Packager {
     }
 
     // Asset ids normally start at 1, so this should be safe.
-    await this.writeModule(0, loads, {});
+    await this.writeModule(0, '', loads, {});
     return true;
   }
 
