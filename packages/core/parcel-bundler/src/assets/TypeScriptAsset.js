@@ -44,6 +44,7 @@ class TypeScriptAsset extends Asset {
     transpilerOptions.compilerOptions.target = 'es6';
     transpilerOptions.compilerOptions.esModuleInterop = true;
     transpilerOptions.compilerOptions.sourceMap = this.options.sourceMaps;
+    transpilerOptions.compilerOptions.noImplicitUseStrict = true;
 
     // Transpile Module using TypeScript and parse result as ast format through babylon
     let transpiled = typescript.transpileModule(
