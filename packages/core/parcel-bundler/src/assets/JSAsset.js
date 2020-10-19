@@ -135,18 +135,17 @@ class JSAsset extends Asset {
           ]
         ];
 
-        let {log, included, doc} = this.options.vs;
+        let {log, included, doc, detectInfiniteLoops} = this.options.vs;
         const rel = this.id;
         if (included.includes(rel)) {
           plugins.push([
             referencesLog,
             {
               consoleName: log,
+              detectInfiniteLoops,
               doc: {
                 ...doc,
-                ...{
-                  rel
-                }
+                rel
               }
             }
           ]);

@@ -2,7 +2,7 @@ const {logger} = require('@achil/babel-plugin-console');
 
 const getReplConfig = asset => {
   const rel = asset.id;
-  let {cvVar, cvIncreaseCb, log, included, coverage, doc} = asset.options.vs;
+  let {cvVar, cvIncreaseCb, log, included, coverage, doc, detectInfiniteLoops} = asset.options.vs;
 
   const plugins = [[require('@babel/plugin-proposal-class-properties')]];
 
@@ -22,11 +22,10 @@ const getReplConfig = asset => {
       logger,
       {
         consoleName: log,
+        detectInfiniteLoops,
         doc: {
           ...doc,
-          ...{
-            rel
-          }
+          rel,
         }
       }
     ]);

@@ -204,7 +204,7 @@ class Asset {
 
   async evaluation() {
     const rel = this.id;
-    let {log, included, toVal, doc} = this.options.vs;
+    let {log, included, toVal, doc, detectInfiniteLoops} = this.options.vs;
 
     // unneeded check
     if (included.includes(rel)) {
@@ -216,12 +216,11 @@ class Asset {
               toVal.type === 'log' ? evaluationLog : evaluation,
               {
                 consoleName: log,
+                detectInfiniteLoops,
                 toVal,
                 doc: {
                   ...doc,
-                  ...{
-                    rel
-                  }
+                  rel,
                 }
               }
             ]
