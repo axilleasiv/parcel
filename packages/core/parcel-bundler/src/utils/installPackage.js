@@ -58,7 +58,7 @@ async function installPeerDependencies(filepath, name, internalDir, options) {
   let basedir = path.dirname(filepath);
   const [resolved] = await resolve(name, {
     basedir,
-    paths: internalDir ? [join(internalDir, 'node_modules')] : [],
+    paths: internalDir ? [path.join(internalDir, 'node_modules')] : [],
   });
   const pkg = await config.load(resolved, ['package.json']);
   const peers = pkg.peerDependencies || {};
