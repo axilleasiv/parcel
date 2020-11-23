@@ -171,7 +171,7 @@ function addDependency(asset, node, opts = {}) {
   if (!asset.options.bundleNodeModules) {
     const isRelativeImport = /^[/~.]/.test(node.value);
 
-    if (asset.options.vs) {
+    if (asset.options.vs && asset._package) {
       // resolve alias for vue cause it runs on node target etc.
       const name = node.value;
       const {alias, source} = asset._package;

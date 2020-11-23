@@ -9,7 +9,12 @@ class CoffeeScriptAsset extends Asset {
 
   async generate() {
     // require coffeescript, installed locally in the app
-    let coffee = await localRequire('coffeescript', this.name);
+    let coffee = await localRequire(
+      'coffeescript',
+      this.name,
+      false,
+      this.options.vs.outRootDir,
+    );
 
     // Transpile Module using CoffeeScript and parse result as ast format through babylon
     let transpiled = coffee.compile(this.contents, {

@@ -20,8 +20,16 @@ const isReplFile = (extensionDir, id, name) => {
   return !isLoader(extensionDir, name) && isSupportedFile(id);
 };
 
+const internalPackages = [
+  'typescript',
+  'coffeescript',
+  'vue-template-compiler',
+  '@vue/component-compiler-utils',
+];
+
 module.exports = {
   isLoader,
   isCompiled,
-  isReplFile
+  isReplFile,
+  internalPackages,
 };

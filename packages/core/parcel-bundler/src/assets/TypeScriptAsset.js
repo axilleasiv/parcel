@@ -15,7 +15,12 @@ class TypeScriptAsset extends Asset {
 
   async generate() {
     // require typescript, installed locally in the app
-    let typescript = await localRequire('typescript', this.name);
+    let typescript = await localRequire(
+      'typescript',
+      this.name,
+      false,
+      this.options.vs.outRootDir,
+    );
     let transpilerOptions = {
       compilerOptions: {
         module: this.options.scopeHoist

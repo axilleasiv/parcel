@@ -265,8 +265,14 @@ class Resolver {
       return this.packageCache.get(file);
     }
 
-    let json = await fs.readFile(file, 'utf8');
-    let pkg = JSON.parse(json);
+    let json, pkg;
+    try {
+      json = await fs.readFile(file, 'utf8');
+      pkg = JSON.parse(json);
+    } catch (error) {
+      // ignore error
+    }
+
 
     pkg.pkgfile = file;
     pkg.pkgdir = dir;

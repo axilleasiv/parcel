@@ -8,10 +8,11 @@ const PromiseQueue = require('./PromiseQueue');
 const path = require('path');
 const fs = require('@parcel/fs');
 const WorkerFarm = require('@achil/workers');
+const {internalPackages} = require('./repl')
 
 const YARN_LOCK = 'yarn.lock';
 
-async function install(modules, filepath, options = {}) {
+async function install(modules, filepath, internalDir, options = {}) {
   let {installPeers = true, saveDev = true, packageManager} = options;
   if (typeof modules === 'string') {
     modules = [modules];
@@ -20,7 +21,7 @@ async function install(modules, filepath, options = {}) {
   logger.progress(`Installing ${modules.join(', ')}...`);
 
   let packageLocation = await config.resolve(filepath, ['package.json']);
-  let cwd = packageLocation ? path.dirname(packageLocation) : process.cwd();
+  let cwd = (packageLocation && !internalDir) ? path.dirname(packageLocation) : internalDir;
 
   if (!packageManager) {
     packageManager = await determinePackageManager(filepath);
@@ -36,7 +37,7 @@ async function install(modules, filepath, options = {}) {
 
   // npm doesn't auto-create a package.json when installing,
   // so create an empty one if needed.
-  if (packageManager === 'npm' && !packageLocation) {
+  if (packageManager === 'npm' && !packageLocation && !internalDir) {
     await fs.writeFile(path.join(cwd, 'package.json'), '{}');
   }
 
@@ -48,14 +49,17 @@ async function install(modules, filepath, options = {}) {
 
   if (installPeers) {
     await Promise.all(
-      modules.map(m => installPeerDependencies(filepath, m, options))
+      modules.map(m => installPeerDependencies(filepath, m, internalDir, options))
     );
   }
 }
 
-async function installPeerDependencies(filepath, name, options) {
+async function installPeerDependencies(filepath, name, internalDir, options) {
   let basedir = path.dirname(filepath);
-  const [resolved] = await resolve(name, {basedir});
+  const [resolved] = await resolve(name, {
+    basedir,
+    paths: internalDir ? [join(internalDir, 'node_modules')] : [],
+  });
   const pkg = await config.load(resolved, ['package.json']);
   const peers = pkg.peerDependencies || {};
 
@@ -64,6 +68,7 @@ async function installPeerDependencies(filepath, name, options) {
     modules.push(`${peer}@${peers[peer]}`);
   }
 
+  //TODO: if there are dependencies internalDir, typescript, coffeescript peer deps
   if (modules.length) {
     await install(
       modules,
