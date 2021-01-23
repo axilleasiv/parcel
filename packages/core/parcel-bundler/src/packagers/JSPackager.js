@@ -139,8 +139,9 @@ class JSPackager extends Packager {
     wrapped += JSON.stringify(id);
 
     if (id && isReplFile(this.options.vs.extensionDir, id, name)) {
-      const filename = path.join(this.options.vs.relativeDir, id);
-      const dirname = path.dirname(filename);
+      const { relativeDir } = this.options.vs;
+      const dirname = relativeDir.split('\\').join('\\\\');
+      const filename = path.join(relativeDir, id).split('\\').join('\\\\');
 
       wrapped += `:[function(require,module,exports,__filename='${filename}',__dirname='${dirname}') {\n`;
     } else {
