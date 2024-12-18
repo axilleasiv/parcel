@@ -19,7 +19,7 @@ class TypeScriptAsset extends Asset {
       'typescript',
       this.name,
       false,
-      this.options.vs.outRootDir,
+      this.options.vs.outRootDir
     );
     let transpilerOptions = {
       compilerOptions: {
@@ -44,12 +44,19 @@ class TypeScriptAsset extends Asset {
         tsconfig.compilerOptions
       );
     }
-    transpilerOptions.compilerOptions.noEmit = false;
-    transpilerOptions.compilerOptions.removeComments = false;
-    transpilerOptions.compilerOptions.target = 'es6';
-    transpilerOptions.compilerOptions.esModuleInterop = true;
-    transpilerOptions.compilerOptions.sourceMap = this.options.sourceMaps;
-    transpilerOptions.compilerOptions.noImplicitUseStrict = true;
+
+    transpilerOptions.compilerOptions = Object.assign(
+      transpilerOptions.compilerOptions,
+      {
+        noEmit: false,
+        removeComments: false,
+        esModuleInterop: true,
+        sourceMap: this.options.sourceMaps,
+        noImplicitUseStrict: true,
+        target: 'es6',
+        module: 'es6'
+      }
+    );
 
     // Transpile Module using TypeScript and parse result as ast format through babylon
     let transpiled = typescript.transpileModule(
