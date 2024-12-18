@@ -1,4 +1,6 @@
 const presetEnv = require('@babel/preset-env');
+const babelCore = require('@babel/core');
+
 const getTargetEngines = require('../../utils/getTargetEngines');
 
 /**
@@ -59,7 +61,10 @@ async function getEnvPlugins(targets, useBuiltIns = false) {
     options.corejs = 2;
   }
 
-  let plugins = presetEnv.default({assertVersion: () => true}, options).plugins;
+  let plugins = presetEnv.default(
+    {version: babelCore.version, assertVersion: () => true},
+    options
+  ).plugins;
 
   envCache.set(key, plugins);
   return plugins;
